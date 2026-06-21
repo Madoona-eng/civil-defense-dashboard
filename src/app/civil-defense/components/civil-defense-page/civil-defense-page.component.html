@@ -12,6 +12,97 @@
     (openInspection)="openInspectionQueue()"
     (openApprovals)="openFinalApprovals()"
     (openArchive)="openArchive()"
+    (manageActivityTypes)="openActivityTypesManager()"
+    (manageDistricts)="openDistrictManager()"
+    (manageRequestingEntities)="openRequestingEntitiesManager()"
     (logoutRequested)="logout()"
   ></app-civil-defense-dashboard-sidebar>
+
+  <section class="dashboard-main">
+    <app-civil-defense-dashboard-header
+      [title]="'لوحة تحكم تراخيص الحماية المدنية'"
+      [subtitle]="'متابعة الطلبات، المعاينات، الموافقات النهائية، والأرشيف العام'"
+      [searchTerm]="searchTerm"
+      [selectedStatusLabel]="getSelectedStatusLabel()"
+      [resultCount]="filteredRequests.length"
+      [userName]="getUserName()"
+      [userRole]="getUserRole()"
+      (searchTermChange)="onSearchTermChange($event)"
+      (createRequest)="openCreateRequest()"
+      (refreshRequested)="selectStatus('ALL')"
+      (logoutRequested)="logout()"
+    ></app-civil-defense-dashboard-header>
+
+    <section class="stats-grid">
+      <button
+        type="button"
+        class="stat-card"
+        *ngFor="let card of statusCards; trackBy: trackByStatusKey"
+        [class.active]="selectedStatus === card.key"
+        (click)="selectStatus(card.key)"
+      >
+        <span>{{ card.label }}</span>
+        <strong>{{ getCount(card.key) }}</strong>
+        <small>{{ card.hint }}</small>
+      </button>
+    </section>
+
+    <main class="content-layout table-only-layout">
+      <app-civil-defense-requests-table
+        [requests]="filteredRequests"
+        (edit)="editRequest($event)"
+        (removed)="deleteRequest($event)"
+        (statusChange)="changeStatus($event)"
+        (inspection)="openInspection($event)"
+      ></app-civil-defense-requests-table>
+    </main>
+  </section>
+
+  <!-- Request Form Modal -->
+  <div
+    class="drawer-backdrop"
+    *ngIf="showRequestForm"
+    (click)="closeRequestForm()"
+  ></div>
+
+  <aside class="request-drawer" *ngIf="showRequestForm">
+    <div class="drawer-header">
+      <div>
+        <span class="drawer-badge">
+          {{ requestToEdit ? 'تعديل طلب' : 'طلب جديد' }}
+        </span>
+
+        <h2>
+          {{
+            requestToEdit
+              ? 'تعديل طلب ترخيص / حماية مدنية'
+              : 'إضافة طلب ترخيص / حماية مدنية'
+          }}
+        </h2>
+
+        <p>
+          املئي بيانات الطلب، صاحب الطلب، المنشأة، والمرفقات ثم اضغطي حفظ.
+        </p>
+      </div>
+
+      <button type="button" class="drawer-close" (click)="closeRequestForm()">
+        ×
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <app-civil-defense-request-form
+        [requestToEdit]="requestToEdit"
+        [hazardLevels]="hazardLevels"
+        (saved)="onRequestSaved($event)"
+        (cancelled)="closeRequestForm()"
+      ></app-civil-defense-request-form>
+    </div>
+  </aside>
+
+  <app-civil-defense-inspection-form
+    [request]="requestForInspection"
+    (saved)="saveInspection($event)"
+    (closed)="closeInspection()"
+  ></app-civil-defense-inspection-form>
 </div>

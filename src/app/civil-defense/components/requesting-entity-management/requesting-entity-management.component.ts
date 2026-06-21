@@ -6,7 +6,6 @@ import { Router } from '@angular/router';
 import { DashboardSidebarComponent } from '../dashboard-sidebar/dashboard-sidebar.component';
 
 import {
-  ApiResponse,
   CreateRequestingEntityRequest,
   RequestingEntity,
   UpdateRequestingEntityRequest
@@ -30,15 +29,17 @@ export class RequestingEntityPageComponent implements OnInit {
 
   loading = false;
   saving = false;
-  deletingId: string | null = null;
-  loadingDetailsId: string | null = null;
+  deleting = false;
 
   errorMessage = '';
   successMessage = '';
   searchTerm = '';
 
-  selectedEntityId: string | null = null;
-  isEditMode = false;
+  showCreateModal = false;
+  showEditModal = false;
+  showDeleteModal = false;
+
+  selectedEntity: RequestingEntity | null = null;
 
   formModel: CreateRequestingEntityRequest = {
     code: 0,
@@ -60,13 +61,14 @@ export class RequestingEntityPageComponent implements OnInit {
     this.successMessage = '';
 
     this.requestingEntityService.getAll().subscribe({
-      next: (res: ApiResponse<RequestingEntity[]>) => {
-        if (res?.isSuccess) {
-          this.entities = res.data || [];
-        } else {
-          this.errorMessage = res?.message || 'حدث خطأ أثناء تحميل الجهات الطالبة';
-        }
+      next: (res: any) => {
+        const data = Array.isArray(res)
+          ? res
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
 
+        this.entities = data.map((item: any) => this.mapEntity(item));
         this.loading = false;
       },
       error: (err: any) => {
@@ -83,7 +85,51 @@ export class RequestingEntityPageComponent implements OnInit {
     });
   }
 
-  save(): void {
+  openCreateModal(): void {
+    this.resetForm();
+    this.selectedEntity = null;
+    this.showCreateModal = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  closeCreateModal(): void {
+    this.showCreateModal = false;
+    this.resetForm();
+  }
+
+  openEditModal(item: RequestingEntity): void {
+    this.selectedEntity = item;
+
+    this.formModel = {
+      code: Number((item as any).code ?? 0),
+      name: item.name || ''
+    };
+
+    this.showEditModal = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.selectedEntity = null;
+    this.resetForm();
+  }
+
+  openDeleteModal(item: RequestingEntity): void {
+    this.selectedEntity = item;
+    this.showDeleteModal = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.selectedEntity = null;
+  }
+
+  createEntity(): void {
     this.errorMessage = '';
     this.successMessage = '';
 
@@ -100,27 +146,23 @@ export class RequestingEntityPageComponent implements OnInit {
       return;
     }
 
-    if (this.isEditMode && this.selectedEntityId) {
-      this.updateEntity(this.selectedEntityId, { code, name });
-      return;
-    }
-
-    this.createEntity({ code, name });
-  }
-
-  createEntity(payload: CreateRequestingEntityRequest): void {
     this.saving = true;
 
+    const payload: CreateRequestingEntityRequest = {
+      code,
+      name
+    };
+
     this.requestingEntityService.create(payload).subscribe({
-      next: (res: ApiResponse<boolean>) => {
-        if (res?.isSuccess) {
-          this.successMessage = res.message || 'تم إنشاء الجهة الطالبة بنجاح';
-          this.resetForm();
-          this.loadEntities();
-        } else {
+      next: (res: any) => {
+        if (res?.isSuccess === false) {
           this.errorMessage =
             res?.message ||
             'لم يتم إنشاء الجهة. ربما يكون كود الجهة موجود بالفعل';
+        } else {
+          this.successMessage = res?.message || 'تم إنشاء الجهة الطالبة بنجاح';
+          this.closeCreateModal();
+          this.loadEntities();
         }
 
         this.saving = false;
@@ -139,56 +181,45 @@ export class RequestingEntityPageComponent implements OnInit {
     });
   }
 
-  editEntity(item: RequestingEntity): void {
+  updateEntity(): void {
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.selectedEntityId = item.id;
-    this.loadingDetailsId = item.id;
+    if (!this.selectedEntity) {
+      this.errorMessage = 'لم يتم تحديد الجهة المطلوب تعديلها';
+      return;
+    }
 
-    this.requestingEntityService.getById(item.id).subscribe({
-      next: (res: ApiResponse<RequestingEntity>) => {
-        if (res?.isSuccess && res.data) {
-          this.isEditMode = true;
-          this.selectedEntityId = res.data.id;
+    const code = Number(this.formModel.code);
+    const name = this.formModel.name.trim();
 
-          this.formModel = {
-            code: Number(res.data.code || 0),
-            name: res.data.name || ''
-          };
-        } else {
-          this.errorMessage = res?.message || 'تعذر تحميل بيانات الجهة';
-        }
+    if (!Number.isFinite(code) || code <= 0) {
+      this.errorMessage = 'من فضلك أدخلي رقم كود صحيح';
+      return;
+    }
 
-        this.loadingDetailsId = null;
-      },
-      error: (err: any) => {
-        console.error('RequestingEntity GET BY ID error:', err);
+    if (!name) {
+      this.errorMessage = 'من فضلك أدخلي اسم الجهة';
+      return;
+    }
 
-        this.errorMessage =
-          err?.error?.message ||
-          err?.error?.Message ||
-          err?.message ||
-          'تعذر تحميل بيانات الجهة';
-
-        this.loadingDetailsId = null;
-      }
-    });
-  }
-
-  updateEntity(id: string, payload: UpdateRequestingEntityRequest): void {
     this.saving = true;
 
-    this.requestingEntityService.update(id, payload).subscribe({
-      next: (res: ApiResponse<boolean>) => {
-        if (res?.isSuccess) {
-          this.successMessage = res.message || 'تم تعديل الجهة بنجاح';
-          this.resetForm();
-          this.loadEntities();
-        } else {
+    const payload: UpdateRequestingEntityRequest = {
+      code,
+      name
+    };
+
+    this.requestingEntityService.update(this.selectedEntity.id, payload).subscribe({
+      next: (res: any) => {
+        if (res?.isSuccess === false) {
           this.errorMessage =
             res?.message ||
             'لم يتم تعديل الجهة. ربما يكون كود الجهة موجود بالفعل';
+        } else {
+          this.successMessage = res?.message || 'تم تعديل الجهة بنجاح';
+          this.closeEditModal();
+          this.loadEntities();
         }
 
         this.saving = false;
@@ -207,29 +238,28 @@ export class RequestingEntityPageComponent implements OnInit {
     });
   }
 
-  deleteEntity(item: RequestingEntity): void {
-    const confirmed = confirm(`هل تريدين حذف الجهة "${item.name}"؟`);
-    if (!confirmed) return;
-
+  confirmDeleteEntity(): void {
     this.errorMessage = '';
     this.successMessage = '';
-    this.deletingId = item.id;
 
-    this.requestingEntityService.delete(item.id).subscribe({
-      next: (res: ApiResponse<boolean>) => {
-        if (res?.isSuccess) {
-          this.successMessage = res.message || 'تم حذف الجهة بنجاح';
+    if (!this.selectedEntity) {
+      this.errorMessage = 'لم يتم تحديد الجهة المطلوب حذفها';
+      return;
+    }
 
-          if (this.selectedEntityId === item.id) {
-            this.resetForm();
-          }
+    this.deleting = true;
 
-          this.loadEntities();
-        } else {
+    this.requestingEntityService.delete(this.selectedEntity.id).subscribe({
+      next: (res: any) => {
+        if (res?.isSuccess === false) {
           this.errorMessage = res?.message || 'حدث خطأ أثناء حذف الجهة';
+        } else {
+          this.successMessage = res?.message || 'تم حذف الجهة بنجاح';
+          this.closeDeleteModal();
+          this.loadEntities();
         }
 
-        this.deletingId = null;
+        this.deleting = false;
       },
       error: (err: any) => {
         console.error('RequestingEntity DELETE error:', err);
@@ -240,7 +270,7 @@ export class RequestingEntityPageComponent implements OnInit {
           err?.message ||
           'حدث خطأ أثناء حذف الجهة';
 
-        this.deletingId = null;
+        this.deleting = false;
       }
     });
   }
@@ -251,10 +281,8 @@ export class RequestingEntityPageComponent implements OnInit {
       name: ''
     };
 
-    this.selectedEntityId = null;
-    this.isEditMode = false;
+    this.selectedEntity = null;
     this.saving = false;
-    this.loadingDetailsId = null;
   }
 
   get filteredEntities(): RequestingEntity[] {
@@ -266,7 +294,7 @@ export class RequestingEntityPageComponent implements OnInit {
 
     return this.entities.filter(item => {
       const id = String(item.id || '').toLowerCase();
-      const code = String(item.code || '').toLowerCase();
+      const code = String((item as any).code || '').toLowerCase();
       const name = String(item.name || '').toLowerCase();
 
       return id.includes(term) || code.includes(term) || name.includes(term);
@@ -313,8 +341,24 @@ export class RequestingEntityPageComponent implements OnInit {
     this.router.navigateByUrl('/civil-defense/activity-types');
   }
 
+  openDistrictManager(): void {
+    this.router.navigateByUrl('/civil-defense/districts');
+  }
+
+  openRequestingEntitiesManager(): void {
+    this.router.navigateByUrl('/civil-defense/requesting-entities');
+  }
+
   logout(): void {
     localStorage.clear();
     this.router.navigateByUrl('/login');
+  }
+
+  private mapEntity(item: any): RequestingEntity {
+    return {
+      id: String(item?.id ?? item?.Id ?? ''),
+      code: Number(item?.code ?? item?.Code ?? 0),
+      name: String(item?.name ?? item?.Name ?? '')
+    } as RequestingEntity;
   }
 }

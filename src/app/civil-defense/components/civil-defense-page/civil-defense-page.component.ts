@@ -132,6 +132,14 @@ export class CivilDefensePageComponent implements OnInit {
     this.selectStatus('ARCHIVED');
   }
 
+  openActivityTypesManager(): void {
+    this.router.navigateByUrl('/civil-defense/activity-types');
+  }
+
+  openDistrictManager(): void {
+    this.router.navigateByUrl('/civil-defense/districts');
+  }
+
   openRequestingEntitiesManager(): void {
     this.router.navigateByUrl('/civil-defense/requesting-entities');
   }

@@ -1,169 +1,222 @@
-<div class="entity-shell" dir="rtl">
-  <app-civil-defense-dashboard-sidebar
-    [selectedStatus]="'DISTRICTS'"
-    [userName]="getUserName()"
-    [userRole]="getUserRole()"
-    [totalRequests]="0"
-    [newRequests]="0"
-    [inspectionRequests]="0"
-    [finalApprovalRequests]="0"
-    (statusSelected)="selectStatus($event)"
-    (createRequest)="openCreateRequest()"
-    (openInspection)="openInspectionQueue()"
-    (openApprovals)="openFinalApprovals()"
-    (openArchive)="openArchive()"
-    (logoutRequested)="logout()"
-  ></app-civil-defense-dashboard-sidebar>
+<section class="district-page" dir="rtl">
+  <header class="page-header">
+    <div>
+      <span class="page-badge">المراكز</span>
+      <h1>إدارة المراكز</h1>
+      <p>يمكنك عرض المراكز، إضافة مركز جديد، تعديل البيانات، أو حذف مركز.</p>
+    </div>
 
-  <main class="entity-page">
-    <header class="page-header">
-      <button type="button" class="back-btn" (click)="goToDashboard()">
+    <div class="header-actions">
+      <button type="button" class="ghost-btn" (click)="goBack()">
         رجوع للوحة الطلبات
       </button>
 
-      <div>
-        <span class="page-badge">المراكز</span>
+      <button type="button" class="primary-btn" (click)="openCreateModal()">
+        + إضافة مركز
+      </button>
+    </div>
+  </header>
 
-        <h1>إضافة وإدارة المراكز</h1>
-
-        <p>
-          يمكنك إضافة مركز جديد، تعديله، حذفه، أو عرض تفاصيله.
-        </p>
-      </div>
-    </header>
-
-    <div class="messages" *ngIf="errorMessage || successMessage">
-      <div class="alert error" *ngIf="errorMessage">
-        {{ errorMessage }}
-      </div>
-
-      <div class="alert success" *ngIf="successMessage">
-        {{ successMessage }}
-      </div>
+  <div class="messages">
+    <div class="alert success" *ngIf="successMessage">
+      {{ successMessage }}
     </div>
 
-    <section class="page-grid">
-      <section class="form-card">
-        <div class="card-header">
-          <h2>{{ isEditMode ? 'تعديل مركز' : 'إضافة مركز جديد' }}</h2>
+    <div class="alert error" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+  </div>
 
-          <p>
-            {{
-              isEditMode
-                ? 'عدلي بيانات المركز ثم اضغطي حفظ التعديل'
-                : 'أدخلي رقم الكود واسم المركز'
-            }}
-          </p>
-        </div>
+  <section class="summary-grid">
+    <div class="summary-card">
+      <span>إجمالي المراكز</span>
+      <strong>{{ districts.length }}</strong>
+      <small>كل المراكز المسجلة</small>
+    </div>
 
-        <label>
-          <span>رقم الكود</span>
+    <div class="summary-card">
+      <span>نتائج البحث</span>
+      <strong>{{ filteredDistricts.length }}</strong>
+      <small>حسب الفلتر الحالي</small>
+    </div>
+  </section>
 
-          <input
-            type="number"
-            min="1"
-            name="code"
-            [(ngModel)]="formModel.code"
-            placeholder="مثال: 1"
-          />
-        </label>
+  <section class="table-card">
+    <div class="table-header">
+      <div>
+        <h2>قائمة المراكز</h2>
+        <p>عرض وتعديل وحذف المراكز المتاحة في النظام.</p>
+      </div>
 
-        <label>
-          <span>اسم المركز</span>
+      <button type="button" class="refresh-btn" (click)="loadDistricts()" [disabled]="loading">
+        {{ loading ? 'جاري التحديث...' : 'تحديث' }}
+      </button>
+    </div>
 
-          <input
-            type="text"
-            name="name"
-            [(ngModel)]="formModel.name"
-            placeholder="مثال: مركز المنيا"
-          />
-        </label>
+    <div class="table-toolbar">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="ابحثي باسم المركز أو المعرف..."
+      />
+    </div>
 
-        <div class="form-actions">
-          <button
-            type="button"
-            class="primary-btn"
-            (click)="save()"
-            [disabled]="saving"
-          >
-            {{
-              saving
-                ? 'جاري الحفظ...'
-                : isEditMode
-                  ? 'حفظ التعديل'
-                  : 'حفظ المركز'
-            }}
-          </button>
+    <div class="loading-box" *ngIf="loading">
+      جاري تحميل المراكز...
+    </div>
 
-          <button type="button" class="ghost-btn" (click)="resetForm()">
-            {{ isEditMode ? 'إلغاء التعديل' : 'إعادة تعيين' }}
-          </button>
-        </div>
-      </section>
+    <div class="empty-box" *ngIf="!loading && filteredDistricts.length === 0">
+      لا توجد مراكز مطابقة للبحث
+    </div>
 
-      <section class="list-card">
-        <div class="list-header">
-          <div>
-            <h2>قائمة المراكز</h2>
-            <p>{{ filteredDistricts.length }} مركز</p>
-          </div>
+    <div class="table-wrapper" *ngIf="!loading && filteredDistricts.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>اسم المركز</th>
+            <th>المعرف</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
 
-          <button type="button" class="refresh-btn" (click)="loadDistricts()">
-            تحديث
-          </button>
-        </div>
+        <tbody>
+          <tr *ngFor="let item of filteredDistricts; let i = index; trackBy: trackById">
+            <td>{{ i + 1 }}</td>
 
-        <div class="search-box">
-          <input
-            type="text"
-            name="searchTerm"
-            [(ngModel)]="searchTerm"
-            placeholder="ابحثي باسم المركز أو المعرف"
-          />
-        </div>
+            <td>
+              <strong class="district-name">{{ item.name }}</strong>
+            </td>
 
-        <div class="loading-box" *ngIf="loading">
-          جاري تحميل المراكز...
-        </div>
+            <td>
+              <span class="district-id">{{ item.id }}</span>
+            </td>
 
-        <div class="empty-box" *ngIf="!loading && filteredDistricts.length === 0">
-          لا توجد مراكز حتى الآن
-        </div>
+            <td>
+              <div class="row-actions">
+                <button type="button" class="edit-btn" (click)="openEditModal(item)">
+                  تعديل
+                </button>
 
-        <div class="entity-list" *ngIf="!loading && filteredDistricts.length > 0">
-          <article
-            class="entity-row"
-            *ngFor="let item of filteredDistricts; trackBy: trackById"
-            [class.selected]="selectedDistrictId === item.id"
-          >
-            <div class="entity-main">
-              <strong>{{ item.name }}</strong>
-              <span>المعرف: {{ item.id }}</span>
-              <small *ngIf="item.code">كود المركز: {{ item.code }}</small>
-            </div>
+                <button type="button" class="delete-btn" (click)="openDeleteModal(item)">
+                  حذف
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-            <div class="entity-actions">
-              <button
-                type="button"
-                class="edit-btn"
-                (click)="editDistrict(item)"
-                [disabled]="loadingDetailsId === item.id"
-              >
-                {{ loadingDetailsId === item.id ? 'تحميل...' : 'تعديل' }}
-              </button>
+  <!-- Create Modal -->
+  <div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()"></div>
 
-              <button
-                type="button"
-                class="delete-btn"
-                (click)="deleteDistrict(item)"
-                [disabled]="deletingId === item.id"
-              >
-                {{ deletingId === item.id ? 'حذف...' : 'حذف' }}
-              </button>
-            </div>
-          </article>
-        </div>
-      </section>
-    </section>
-  </main>
-</div>
+  <section class="app-modal" *ngIf="showCreateModal">
+    <div class="modal-header">
+      <div>
+        <span class="modal-badge">إضافة</span>
+        <h2>إضافة مركز جديد</h2>
+        <p>أدخلي اسم المركز ثم اضغطي حفظ.</p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="closeCreateModal()">×</button>
+    </div>
+
+    <form class="modal-body" #createForm="ngForm" (ngSubmit)="createDistrict()">
+      <label>
+        <span>اسم المركز</span>
+        <input
+          type="text"
+          name="createName"
+          [(ngModel)]="formModel.name"
+          placeholder="مثال: مركز المنيا"
+          required
+        />
+      </label>
+
+      <div class="modal-actions">
+        <button type="submit" class="primary-btn" [disabled]="saving">
+          {{ saving ? 'جاري الحفظ...' : 'حفظ المركز' }}
+        </button>
+
+        <button type="button" class="ghost-btn" (click)="closeCreateModal()" [disabled]="saving">
+          إلغاء
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Edit Modal -->
+  <div class="modal-backdrop" *ngIf="showEditModal" (click)="closeEditModal()"></div>
+
+  <section class="app-modal" *ngIf="showEditModal">
+    <div class="modal-header">
+      <div>
+        <span class="modal-badge edit">تعديل</span>
+        <h2>تعديل المركز</h2>
+        <p>عدلي اسم المركز ثم اضغطي حفظ التعديل.</p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="closeEditModal()">×</button>
+    </div>
+
+    <form class="modal-body" #editForm="ngForm" (ngSubmit)="updateDistrict()">
+      <label>
+        <span>اسم المركز</span>
+        <input
+          type="text"
+          name="editName"
+          [(ngModel)]="formModel.name"
+          placeholder="مثال: مركز المنيا"
+          required
+        />
+      </label>
+
+      <div class="modal-actions">
+        <button type="submit" class="primary-btn" [disabled]="saving">
+          {{ saving ? 'جاري الحفظ...' : 'حفظ التعديل' }}
+        </button>
+
+        <button type="button" class="ghost-btn" (click)="closeEditModal()" [disabled]="saving">
+          إلغاء
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Delete Modal -->
+  <div class="modal-backdrop" *ngIf="showDeleteModal" (click)="closeDeleteModal()"></div>
+
+  <section class="app-modal small-modal" *ngIf="showDeleteModal">
+    <div class="modal-header">
+      <div>
+        <span class="modal-badge danger">حذف</span>
+        <h2>تأكيد حذف المركز</h2>
+        <p>
+          هل تريدين حذف المركز
+          <strong>{{ selectedDistrict?.name }}</strong>
+          ؟
+        </p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="closeDeleteModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="delete-warning">
+        لا يمكن التراجع عن عملية الحذف بعد تأكيدها.
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="danger-btn" (click)="confirmDeleteDistrict()" [disabled]="deleting">
+          {{ deleting ? 'جاري الحذف...' : 'نعم، حذف' }}
+        </button>
+
+        <button type="button" class="ghost-btn" (click)="closeDeleteModal()" [disabled]="deleting">
+          إلغاء
+        </button>
+      </div>
+    </div>
+  </section>
+</section>

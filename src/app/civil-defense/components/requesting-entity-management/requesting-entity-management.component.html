@@ -13,23 +13,31 @@
     (openApprovals)="openFinalApprovals()"
     (openArchive)="openArchive()"
     (manageActivityTypes)="openActivityTypesManager()"
+    (manageDistricts)="openDistrictManager()"
+    (manageRequestingEntities)="openRequestingEntitiesManager()"
     (logoutRequested)="logout()"
   ></app-civil-defense-dashboard-sidebar>
 
   <main class="entity-page">
     <header class="page-header">
-      <button type="button" class="back-btn" (click)="goToDashboard()">
-        رجوع للوحة الطلبات
-      </button>
-
       <div>
         <span class="page-badge">الجهات الطالبة</span>
 
-        <h1>إضافة وإدارة الجهات الطالبة</h1>
+        <h1>إدارة الجهات الطالبة</h1>
 
         <p>
-          يمكنك إضافة جهة طالبة جديدة، تعديلها، حذفها، أو عرض تفاصيلها.
+          يمكنك عرض الجهات الطالبة، إضافة جهة جديدة، تعديل البيانات، أو حذف جهة.
         </p>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="ghost-btn" (click)="goToDashboard()">
+          رجوع للوحة الطلبات
+        </button>
+
+        <button type="button" class="primary-btn" (click)="openCreateModal()">
+          + إضافة جهة
+        </button>
       </div>
     </header>
 
@@ -43,136 +51,230 @@
       </div>
     </div>
 
-    <section class="page-grid">
-      <section class="form-card">
-        <div class="card-header">
-          <h2>{{ isEditMode ? 'تعديل جهة طالبة' : 'إضافة جهة جديدة' }}</h2>
+    <section class="summary-grid">
+      <div class="summary-card">
+        <span>إجمالي الجهات</span>
+        <strong>{{ entities.length }}</strong>
+        <small>كل الجهات المسجلة</small>
+      </div>
 
-          <p>
-            {{
-              isEditMode
-                ? 'عدلي بيانات الجهة ثم اضغطي حفظ التعديل'
-                : 'أدخلي رقم الكود واسم الجهة الطالبة'
-            }}
-          </p>
+      <div class="summary-card">
+        <span>نتائج البحث</span>
+        <strong>{{ filteredEntities.length }}</strong>
+        <small>حسب الفلتر الحالي</small>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <div class="table-header">
+        <div>
+          <h2>قائمة الجهات الطالبة</h2>
+          <p>عرض وتعديل وحذف الجهات المتاحة في النظام.</p>
         </div>
 
-        <label>
-          <span>رقم الكود</span>
+        <button type="button" class="refresh-btn" (click)="loadEntities()" [disabled]="loading">
+          {{ loading ? 'جاري التحديث...' : 'تحديث' }}
+        </button>
+      </div>
 
+      <div class="table-toolbar">
+        <input
+          type="text"
+          name="searchTerm"
+          [(ngModel)]="searchTerm"
+          placeholder="ابحثي باسم الجهة أو الكود أو المعرف..."
+        />
+      </div>
+
+      <div class="loading-box" *ngIf="loading">
+        جاري تحميل الجهات الطالبة...
+      </div>
+
+      <div class="empty-box" *ngIf="!loading && filteredEntities.length === 0">
+        لا توجد جهات مطابقة للبحث
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loading && filteredEntities.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الكود</th>
+              <th>اسم الجهة</th>
+              <th>المعرف</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let item of filteredEntities; let i = index; trackBy: trackById">
+              <td>{{ i + 1 }}</td>
+
+              <td>
+                <span class="code-pill">{{ item.code }}</span>
+              </td>
+
+              <td>
+                <strong class="entity-name">{{ item.name }}</strong>
+              </td>
+
+              <td>
+                <span class="entity-id">{{ item.id }}</span>
+              </td>
+
+              <td>
+                <div class="row-actions">
+                  <button type="button" class="edit-btn" (click)="openEditModal(item)">
+                    تعديل
+                  </button>
+
+                  <button type="button" class="delete-btn" (click)="openDeleteModal(item)">
+                    حذف
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Create Modal -->
+    <div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()"></div>
+
+    <section class="app-modal" *ngIf="showCreateModal">
+      <div class="modal-header">
+        <div>
+          <span class="modal-badge">إضافة</span>
+          <h2>إضافة جهة جديدة</h2>
+          <p>أدخلي كود الجهة واسم الجهة ثم اضغطي حفظ.</p>
+        </div>
+
+        <button type="button" class="close-btn" (click)="closeCreateModal()">×</button>
+      </div>
+
+      <form class="modal-body" #createForm="ngForm" (ngSubmit)="createEntity()">
+        <label>
+          <span>كود الجهة</span>
           <input
             type="number"
-            min="1"
-            name="code"
+            name="createCode"
             [(ngModel)]="formModel.code"
             placeholder="مثال: 4"
+            required
           />
         </label>
 
         <label>
           <span>اسم الجهة</span>
-
           <input
             type="text"
-            name="name"
+            name="createName"
             [(ngModel)]="formModel.name"
             placeholder="مثال: مديرية الصحة والسكان"
+            required
           />
         </label>
 
-        <div class="form-actions">
-          <button
-            type="button"
-            class="primary-btn"
-            (click)="save()"
-            [disabled]="saving"
-          >
-            {{
-              saving
-                ? 'جاري الحفظ...'
-                : isEditMode
-                  ? 'حفظ التعديل'
-                  : 'حفظ الجهة'
-            }}
+        <div class="modal-actions">
+          <button type="submit" class="primary-btn" [disabled]="saving">
+            {{ saving ? 'جاري الحفظ...' : 'حفظ الجهة' }}
           </button>
 
-          <button type="button" class="ghost-btn" (click)="resetForm()">
-            {{ isEditMode ? 'إلغاء التعديل' : 'إعادة تعيين' }}
+          <button type="button" class="ghost-btn" (click)="closeCreateModal()" [disabled]="saving">
+            إلغاء
           </button>
         </div>
-      </section>
+      </form>
+    </section>
 
-      <section class="list-card">
-        <div class="list-header">
-          <div>
-            <h2>قائمة الجهات الطالبة</h2>
-            <p>{{ filteredEntities.length }} جهة</p>
-          </div>
+    <!-- Edit Modal -->
+    <div class="modal-backdrop" *ngIf="showEditModal" (click)="closeEditModal()"></div>
 
-          <button type="button" class="refresh-btn" (click)="loadEntities()">
-            تحديث
-          </button>
+    <section class="app-modal" *ngIf="showEditModal">
+      <div class="modal-header">
+        <div>
+          <span class="modal-badge edit">تعديل</span>
+          <h2>تعديل الجهة</h2>
+          <p>عدلي الكود أو الاسم ثم اضغطي حفظ التعديل.</p>
         </div>
 
-        <div class="search-box">
+        <button type="button" class="close-btn" (click)="closeEditModal()">×</button>
+      </div>
+
+      <form class="modal-body" #editForm="ngForm" (ngSubmit)="updateEntity()">
+        <label>
+          <span>كود الجهة</span>
+          <input
+            type="number"
+            name="editCode"
+            [(ngModel)]="formModel.code"
+            placeholder="مثال: 4"
+            required
+          />
+        </label>
+
+        <label>
+          <span>اسم الجهة</span>
           <input
             type="text"
-            name="searchTerm"
-            [(ngModel)]="searchTerm"
-            placeholder="ابحثي باسم الجهة أو المعرف"
+            name="editName"
+            [(ngModel)]="formModel.name"
+            placeholder="مثال: مديرية الصحة والسكان"
+            required
           />
+        </label>
+
+        <div class="modal-actions">
+          <button type="submit" class="primary-btn" [disabled]="saving">
+            {{ saving ? 'جاري الحفظ...' : 'حفظ التعديل' }}
+          </button>
+
+          <button type="button" class="ghost-btn" (click)="closeEditModal()" [disabled]="saving">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Delete Modal -->
+    <div class="modal-backdrop" *ngIf="showDeleteModal" (click)="closeDeleteModal()"></div>
+
+    <section class="app-modal small-modal" *ngIf="showDeleteModal">
+      <div class="modal-header">
+        <div>
+          <span class="modal-badge danger">حذف</span>
+          <h2>تأكيد حذف الجهة</h2>
+          <p>
+            هل تريدين حذف الجهة
+            <strong>{{ selectedEntity?.name }}</strong>
+            ؟
+          </p>
         </div>
 
-        <div class="loading-box" *ngIf="loading">
-          جاري تحميل الجهات الطالبة...
+        <button type="button" class="close-btn" (click)="closeDeleteModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="delete-warning">
+          لا يمكن التراجع عن عملية الحذف بعد تأكيدها.
         </div>
 
-        <div class="empty-box" *ngIf="!loading && filteredEntities.length === 0">
-          لا توجد جهات طالبة حتى الآن
-        </div>
-
-        <div class="entity-list" *ngIf="!loading && filteredEntities.length > 0">
-          <article
-            class="entity-row"
-            *ngFor="let item of filteredEntities; trackBy: trackById"
-            [class.selected]="selectedEntityId === item.id"
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="danger-btn"
+            (click)="confirmDeleteEntity()"
+            [disabled]="deleting"
           >
-            <div class="entity-main">
-              <strong>{{ item.name }}</strong>
-              <span>المعرف: {{ item.id }}</span>
-              <small *ngIf="item.code">كود الجهة: {{ item.code }}</small>
-            </div>
+            {{ deleting ? 'جاري الحذف...' : 'نعم، حذف' }}
+          </button>
 
-            <div class="entity-actions">
-              <button
-                type="button"
-                class="edit-btn"
-                (click)="editEntity(item)"
-                [disabled]="loadingDetailsId === item.id"
-              >
-                {{
-                  loadingDetailsId === item.id
-                    ? 'تحميل...'
-                    : 'تعديل'
-                }}
-              </button>
-
-              <button
-                type="button"
-                class="delete-btn"
-                (click)="deleteEntity(item)"
-                [disabled]="deletingId === item.id"
-              >
-                {{
-                  deletingId === item.id
-                    ? 'حذف...'
-                    : 'حذف'
-                }}
-              </button>
-            </div>
-          </article>
+          <button type="button" class="ghost-btn" (click)="closeDeleteModal()" [disabled]="deleting">
+            إلغاء
+          </button>
         </div>
-      </section>
+      </div>
     </section>
   </main>
 </div>
