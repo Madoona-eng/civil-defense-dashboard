@@ -1,0 +1,248 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(18, 52, 88, 0.45);
+  backdrop-filter: blur(7px);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-card {
+  width: min(560px, 100%);
+  background: #ffffff;
+  border-radius: 26px;
+  border: 1px solid rgba(18, 52, 88, 0.12);
+  box-shadow: 0 28px 80px rgba(18, 52, 88, 0.22);
+  padding: 28px;
+  direction: rtl;
+  animation: slideUp 0.25s ease-in-out;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.modal-badge {
+  display: inline-flex;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(11, 107, 115, 0.08);
+  color: #0b6b73;
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #123458;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.modal-header p {
+  margin: 8px 0 0;
+  color: #6b7a90;
+  font-size: 14px;
+  line-height: 1.8;
+  font-weight: 600;
+}
+
+.close-btn {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 14px;
+  background: #f8fbff;
+  color: #123458;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}
+
+.messages {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.alert {
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.alert.error {
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+}
+
+.alert.success {
+  background: rgba(11, 107, 115, 0.08);
+  color: #0b6b73;
+  border: 1px solid rgba(11, 107, 115, 0.22);
+}
+
+.loading-box {
+  padding: 14px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  background: rgba(11, 107, 115, 0.08);
+  color: #0b6b73;
+  font-weight: 900;
+  border: 1px solid rgba(11, 107, 115, 0.18);
+}
+
+.form-grid {
+  display: grid;
+  gap: 18px;
+}
+
+label {
+  display: grid;
+  gap: 9px;
+}
+
+label span {
+  color: #123458;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+input {
+  width: 100%;
+  height: 52px;
+  border: 1px solid rgba(18, 52, 88, 0.14);
+  border-radius: 16px;
+  padding: 0 16px;
+  outline: none;
+  background: #f8fbff;
+  color: #123458;
+  font-size: 15px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+input::placeholder {
+  color: #8a97aa;
+  font-weight: 600;
+}
+
+input:focus {
+  border-color: rgba(11, 107, 115, 0.55);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(11, 107, 115, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.primary-btn,
+.ghost-btn {
+  min-width: 140px;
+  height: 48px;
+  border: 0;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #0b6b73, #123458);
+  color: #ffffff;
+  box-shadow: 0 14px 34px rgba(11, 107, 115, 0.25);
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 42px rgba(11, 107, 115, 0.34);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.ghost-btn {
+  background: #f8fbff;
+  color: #123458;
+  border: 1px solid rgba(18, 52, 88, 0.12);
+}
+
+.ghost-btn:hover {
+  background: rgba(18, 52, 88, 0.06);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-backdrop {
+    padding: 16px;
+  }
+
+  .modal-card {
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .modal-header {
+    gap: 12px;
+  }
+
+  .modal-header h2 {
+    font-size: 22px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .primary-btn,
+  .ghost-btn {
+    width: 100%;
+  }
+}

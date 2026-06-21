@@ -1,24 +1,4 @@
-$navy: #123458;
-$teal: #0b6b73;
-$gold: #c89b3c;
-$bg: #f4f7fb;
-$text: #102033;
-$muted: #6b7a90;
-$border: rgba(18, 52, 88, 0.1);
-
-:host {
-  display: block;
-  min-height: 100vh;
-  color: $text;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-/* ==============================
-   DASHBOARD PAGE LAYOUT
-============================== */
+@use '../../../civil-defense/components/requesting-entity-management/requesting-entity-management.component.scss';
 
 .activity-shell {
   width: 100%;

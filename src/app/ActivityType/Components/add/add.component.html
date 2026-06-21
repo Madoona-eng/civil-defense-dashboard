@@ -1,0 +1,92 @@
+<div class="modal-backdrop" (click)="cancelEdit()">
+  <section class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <span class="modal-badge">
+          {{ isEditMode ? 'تعديل' : 'إضافة' }}
+        </span>
+
+        <h2>
+          {{ isEditMode ? 'تعديل نوع النشاط' : 'إضافة نوع نشاط جديد' }}
+        </h2>
+
+        <p>
+          {{
+            isEditMode
+              ? 'عدّل بيانات نوع النشاط ثم اضغط حفظ التعديل'
+              : 'أدخل رقم الكود واسم نوع النشاط لإضافته إلى القائمة'
+          }}
+        </p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="cancelEdit()">
+        ×
+      </button>
+    </div>
+
+    <div class="messages" *ngIf="errorMessage || successMessage">
+      <div class="alert error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="alert success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+    </div>
+
+    <div class="loading-box" *ngIf="loadingDetails">
+      جاري تحميل بيانات نوع النشاط...
+    </div>
+
+    <div class="form-grid">
+      <label>
+        <span>رقم الكود</span>
+
+        <input
+          type="number"
+          min="1"
+          name="code"
+          [(ngModel)]="formModel.code"
+          placeholder="مثال: 1"
+        />
+      </label>
+
+      <label>
+        <span>اسم نوع النشاط</span>
+
+        <input
+          type="text"
+          name="name"
+          [(ngModel)]="formModel.name"
+          placeholder="مثال: مطعم"
+        />
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button
+        type="button"
+        class="primary-btn"
+        (click)="save()"
+        [disabled]="saving || loadingDetails"
+      >
+        {{
+          saving
+            ? 'جاري الحفظ...'
+            : isEditMode
+              ? 'حفظ التعديل'
+              : 'حفظ نوع النشاط'
+        }}
+      </button>
+
+      <button
+        type="button"
+        class="ghost-btn"
+        (click)="cancelEdit()"
+        [disabled]="saving"
+      >
+        إلغاء
+      </button>
+    </div>
+  </section>
+</div>

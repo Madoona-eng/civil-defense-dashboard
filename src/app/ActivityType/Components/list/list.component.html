@@ -1,0 +1,70 @@
+<section class="list-card">
+  <div class="list-header">
+    <div>
+      <span class="section-badge">Activity Types</span>
+      <h2>قائمة أنواع النشاط</h2>
+      <p>{{ filteredActivityTypes.length }} نوع نشاط</p>
+    </div>
+
+    <button type="button" class="refresh-btn" (click)="loadActivityTypes()">
+      تحديث
+    </button>
+  </div>
+
+  <div class="messages" *ngIf="errorMessage || successMessage">
+    <div class="alert error" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="alert success" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" name="searchTerm" [(ngModel)]="searchTerm"
+      placeholder="ابحث باسم نوع النشاط أو المعرف أو الكود" />
+  </div>
+
+  <div class="loading-box" *ngIf="loading">
+    جاري تحميل أنواع النشاط...
+  </div>
+
+  <div class="empty-box" *ngIf="!loading && filteredActivityTypes.length === 0">
+    لا توجد أنواع نشاط حتى الآن
+  </div>
+
+  <div class="activity-list" *ngIf="!loading && filteredActivityTypes.length > 0">
+    <article class="activity-row" *ngFor="let item of filteredActivityTypes; trackBy: trackById">
+      <div class="activity-main">
+        <div class="activity-icon">
+          {{ item.name ? item.name.charAt(0) : 'ن' }}
+        </div>
+
+        <div>
+          <strong>{{ item.name }}</strong>
+          <span>المعرف: {{ item.id }}</span>
+          <small *ngIf="item.code">كود النشاط: {{ item.code }}</small>
+        </div>
+      </div>
+
+      <div class="activity-actions">
+        <button type="button" class="edit-btn" (click)="editActivityType(item)">
+          تعديل
+        </button>
+
+        <button type="button" class="delete-btn" (click)="openDeleteModal(item)" [disabled]="deletingId === item.id">
+          {{ deletingId === item.id ? 'حذف...' : 'حذف' }}
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<app-delete
+  *ngIf="isDeleteModalOpen"
+  [item]="selectedDeleteItem"
+  [deleting]="!!deletingId"
+  (confirmed)="confirmDeleteActivityType($event)"
+  (cancelled)="closeDeleteModal()"
+></app-delete>

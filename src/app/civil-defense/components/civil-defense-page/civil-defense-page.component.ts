@@ -18,10 +18,7 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { CivilDefenseMockService } from '../../services/civil-defense-mock.service';
 
 import { DashboardSidebarComponent } from '../dashboard-sidebar/dashboard-sidebar.component';
-import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
-import { InspectionFormComponent } from '../inspection-form/inspection-form.component';
-import { RequestFormComponent } from '../request-form/request-form.component';
-import { RequestsTableComponent } from '../requests-table/requests-table.component';
+
 
 type StatusFilter = 'ALL' | CivilDefenseRequestStatus;
 
@@ -38,10 +35,7 @@ interface StatusCard {
     CommonModule,
     FormsModule,
     DashboardSidebarComponent,
-    DashboardHeaderComponent,
-    RequestFormComponent,
-    RequestsTableComponent,
-    InspectionFormComponent
+
   ],
   templateUrl: './civil-defense-page.component.html',
   styleUrls: ['./civil-defense-page.component.scss']
