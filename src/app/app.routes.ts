@@ -44,12 +44,5 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'login'
-  },
-  {
-  path: 'civil-defense/districts',
-  canActivate: [authGuard],
-  loadComponent: () =>
-    import('./civil-defense/components/district-management/district-management.component')
-      .then(m => m.DistrictManagementComponent)
-}
+  }
 ];

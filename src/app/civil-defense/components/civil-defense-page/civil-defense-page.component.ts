@@ -19,7 +19,6 @@ import { CivilDefenseMockService } from '../../services/civil-defense-mock.servi
 
 import { DashboardSidebarComponent } from '../dashboard-sidebar/dashboard-sidebar.component';
 import { DashboardHeaderComponent } from '../dashboard-header/dashboard-header.component';
-
 import { InspectionFormComponent } from '../inspection-form/inspection-form.component';
 import { RequestFormComponent } from '../request-form/request-form.component';
 import { RequestsTableComponent } from '../requests-table/requests-table.component';
@@ -137,6 +136,14 @@ export class CivilDefensePageComponent implements OnInit {
 
   openArchive(): void {
     this.selectStatus('ARCHIVED');
+  }
+
+  openActivityTypesManager(): void {
+    this.router.navigateByUrl('/civil-defense/activity-types');
+  }
+
+  openDistrictManager(): void {
+    this.router.navigateByUrl('/civil-defense/districts');
   }
 
   openRequestingEntitiesManager(): void {

@@ -13,23 +13,31 @@
     (openApprovals)="openFinalApprovals()"
     (openArchive)="openArchive()"
     (manageActivityTypes)="openActivityTypesManager()"
+    (manageDistricts)="openDistrictManager()"
+    (manageRequestingEntities)="openRequestingEntitiesManager()"
     (logoutRequested)="logout()"
   ></app-civil-defense-dashboard-sidebar>
 
   <main class="activity-page">
     <header class="page-header">
-      <button type="button" class="back-btn" (click)="goToDashboard()">
-        رجوع للوحة الطلبات
-      </button>
-
       <div>
         <span class="page-badge">أنواع النشاط</span>
 
-        <h1>إضافة وإدارة أنواع النشاط</h1>
+        <h1>إدارة أنواع النشاط</h1>
 
         <p>
-          يمكنك إضافة نوع نشاط جديد، تعديله، حذفه، أو عرض تفاصيله.
+          يمكنك عرض أنواع النشاط، إضافة نوع جديد، تعديل البيانات، أو حذف نوع نشاط.
         </p>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="ghost-btn" (click)="goToDashboard()">
+          رجوع للوحة الطلبات
+        </button>
+
+        <button type="button" class="primary-btn" (click)="openCreateModal()">
+          + إضافة نوع نشاط
+        </button>
       </div>
     </header>
 
@@ -43,128 +51,230 @@
       </div>
     </div>
 
-    <section class="page-grid">
-      <section class="form-card">
-        <div class="card-header">
-          <h2>{{ isEditMode ? 'تعديل نوع نشاط' : 'إضافة نوع نشاط جديد' }}</h2>
+    <section class="summary-grid">
+      <div class="summary-card">
+        <span>إجمالي أنواع النشاط</span>
+        <strong>{{ activityTypes.length }}</strong>
+        <small>كل الأنواع المسجلة</small>
+      </div>
 
-          <p>
-            {{
-              isEditMode
-                ? 'عدلي بيانات نوع النشاط ثم اضغطي حفظ التعديل'
-                : 'أدخلي رقم الكود واسم نوع النشاط'
-            }}
-          </p>
+      <div class="summary-card">
+        <span>نتائج البحث</span>
+        <strong>{{ filteredActivityTypes.length }}</strong>
+        <small>حسب الفلتر الحالي</small>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <div class="table-header">
+        <div>
+          <h2>قائمة أنواع النشاط</h2>
+          <p>عرض وتعديل وحذف أنواع النشاط المتاحة في النظام.</p>
         </div>
 
-        <label>
-          <span>رقم الكود</span>
+        <button type="button" class="refresh-btn" (click)="loadActivityTypes()" [disabled]="loading">
+          {{ loading ? 'جاري التحديث...' : 'تحديث' }}
+        </button>
+      </div>
 
+      <div class="table-toolbar">
+        <input
+          type="text"
+          name="searchTerm"
+          [(ngModel)]="searchTerm"
+          placeholder="ابحثي باسم نوع النشاط أو الكود أو المعرف..."
+        />
+      </div>
+
+      <div class="loading-box" *ngIf="loading">
+        جاري تحميل أنواع النشاط...
+      </div>
+
+      <div class="empty-box" *ngIf="!loading && filteredActivityTypes.length === 0">
+        لا توجد أنواع نشاط مطابقة للبحث
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loading && filteredActivityTypes.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الكود</th>
+              <th>اسم نوع النشاط</th>
+              <th>المعرف</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let item of filteredActivityTypes; let i = index; trackBy: trackById">
+              <td>{{ i + 1 }}</td>
+
+              <td>
+                <span class="code-pill">{{ item.code }}</span>
+              </td>
+
+              <td>
+                <strong class="activity-name">{{ item.name }}</strong>
+              </td>
+
+              <td>
+                <span class="activity-id">{{ item.id }}</span>
+              </td>
+
+              <td>
+                <div class="row-actions">
+                  <button type="button" class="edit-btn" (click)="openEditModal(item)">
+                    تعديل
+                  </button>
+
+                  <button type="button" class="delete-btn" (click)="openDeleteModal(item)">
+                    حذف
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Create Modal -->
+    <div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()"></div>
+
+    <section class="app-modal" *ngIf="showCreateModal">
+      <div class="modal-header">
+        <div>
+          <span class="modal-badge">إضافة</span>
+          <h2>إضافة نوع نشاط جديد</h2>
+          <p>أدخلي كود النشاط واسم نوع النشاط ثم اضغطي حفظ.</p>
+        </div>
+
+        <button type="button" class="close-btn" (click)="closeCreateModal()">×</button>
+      </div>
+
+      <form class="modal-body" #createForm="ngForm" (ngSubmit)="createActivityType()">
+        <label>
+          <span>كود النشاط</span>
           <input
             type="number"
-            min="1"
-            name="code"
+            name="createCode"
             [(ngModel)]="formModel.code"
-            placeholder="مثال: 1"
+            placeholder="مثال: 101"
+            required
           />
         </label>
 
         <label>
           <span>اسم نوع النشاط</span>
-
           <input
             type="text"
-            name="name"
+            name="createName"
             [(ngModel)]="formModel.name"
             placeholder="مثال: مطعم"
+            required
           />
         </label>
 
-        <div class="form-actions">
-          <button
-            type="button"
-            class="primary-btn"
-            (click)="save()"
-            [disabled]="saving"
-          >
-            {{
-              saving
-                ? 'جاري الحفظ...'
-                : isEditMode
-                  ? 'حفظ التعديل'
-                  : 'حفظ نوع النشاط'
-            }}
+        <div class="modal-actions">
+          <button type="submit" class="primary-btn" [disabled]="saving">
+            {{ saving ? 'جاري الحفظ...' : 'حفظ نوع النشاط' }}
           </button>
 
-          <button type="button" class="ghost-btn" (click)="resetForm()">
-            {{ isEditMode ? 'إلغاء التعديل' : 'إعادة تعيين' }}
+          <button type="button" class="ghost-btn" (click)="closeCreateModal()" [disabled]="saving">
+            إلغاء
           </button>
         </div>
-      </section>
+      </form>
+    </section>
 
-      <section class="list-card">
-        <div class="list-header">
-          <div>
-            <h2>قائمة أنواع النشاط</h2>
-            <p>{{ filteredActivityTypes.length }} نوع نشاط</p>
-          </div>
+    <!-- Edit Modal -->
+    <div class="modal-backdrop" *ngIf="showEditModal" (click)="closeEditModal()"></div>
 
-          <button type="button" class="refresh-btn" (click)="loadActivityTypes()">
-            تحديث
-          </button>
+    <section class="app-modal" *ngIf="showEditModal">
+      <div class="modal-header">
+        <div>
+          <span class="modal-badge edit">تعديل</span>
+          <h2>تعديل نوع النشاط</h2>
+          <p>عدلي الكود أو الاسم ثم اضغطي حفظ التعديل.</p>
         </div>
 
-        <div class="search-box">
+        <button type="button" class="close-btn" (click)="closeEditModal()">×</button>
+      </div>
+
+      <form class="modal-body" #editForm="ngForm" (ngSubmit)="updateActivityType()">
+        <label>
+          <span>كود النشاط</span>
+          <input
+            type="number"
+            name="editCode"
+            [(ngModel)]="formModel.code"
+            placeholder="مثال: 101"
+            required
+          />
+        </label>
+
+        <label>
+          <span>اسم نوع النشاط</span>
           <input
             type="text"
-            name="searchTerm"
-            [(ngModel)]="searchTerm"
-            placeholder="ابحثي باسم نوع النشاط أو المعرف"
+            name="editName"
+            [(ngModel)]="formModel.name"
+            placeholder="مثال: مطعم"
+            required
           />
+        </label>
+
+        <div class="modal-actions">
+          <button type="submit" class="primary-btn" [disabled]="saving">
+            {{ saving ? 'جاري الحفظ...' : 'حفظ التعديل' }}
+          </button>
+
+          <button type="button" class="ghost-btn" (click)="closeEditModal()" [disabled]="saving">
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Delete Modal -->
+    <div class="modal-backdrop" *ngIf="showDeleteModal" (click)="closeDeleteModal()"></div>
+
+    <section class="app-modal small-modal" *ngIf="showDeleteModal">
+      <div class="modal-header">
+        <div>
+          <span class="modal-badge danger">حذف</span>
+          <h2>تأكيد حذف نوع النشاط</h2>
+          <p>
+            هل تريدين حذف نوع النشاط
+            <strong>{{ selectedActivityType?.name }}</strong>
+            ؟
+          </p>
         </div>
 
-        <div class="loading-box" *ngIf="loading">
-          جاري تحميل أنواع النشاط...
+        <button type="button" class="close-btn" (click)="closeDeleteModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="delete-warning">
+          لا يمكن التراجع عن عملية الحذف بعد تأكيدها.
         </div>
 
-        <div class="empty-box" *ngIf="!loading && filteredActivityTypes.length === 0">
-          لا توجد أنواع نشاط حتى الآن
-        </div>
-
-        <div class="activity-list" *ngIf="!loading && filteredActivityTypes.length > 0">
-          <article
-            class="activity-row"
-            *ngFor="let item of filteredActivityTypes; trackBy: trackById"
-            [class.selected]="selectedActivityTypeId === item.id"
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="danger-btn"
+            (click)="confirmDeleteActivityType()"
+            [disabled]="deleting"
           >
-            <div class="activity-main">
-              <strong>{{ item.name }}</strong>
-              <span>المعرف: {{ item.id }}</span>
-              <small *ngIf="item.code">كود النشاط: {{ item.code }}</small>
-            </div>
+            {{ deleting ? 'جاري الحذف...' : 'نعم، حذف' }}
+          </button>
 
-            <div class="activity-actions">
-              <button
-                type="button"
-                class="edit-btn"
-                (click)="editActivityType(item)"
-                [disabled]="loadingDetailsId === item.id"
-              >
-                {{ loadingDetailsId === item.id ? 'تحميل...' : 'تعديل' }}
-              </button>
-
-              <button
-                type="button"
-                class="delete-btn"
-                (click)="deleteActivityType(item)"
-                [disabled]="deletingId === item.id"
-              >
-                {{ deletingId === item.id ? 'حذف...' : 'حذف' }}
-              </button>
-            </div>
-          </article>
+          <button type="button" class="ghost-btn" (click)="closeDeleteModal()" [disabled]="deleting">
+            إلغاء
+          </button>
         </div>
-      </section>
+      </div>
     </section>
   </main>
 </div>

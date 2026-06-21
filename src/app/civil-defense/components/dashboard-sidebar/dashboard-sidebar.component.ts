@@ -41,6 +41,7 @@ export class DashboardSidebarComponent {
   @Output() openApprovals = new EventEmitter<void>();
   @Output() openArchive = new EventEmitter<void>();
   @Output() logoutRequested = new EventEmitter<void>();
+  @Output() manageDistricts = new EventEmitter<void>();
 
   constructor(private readonly router: Router) {}
 

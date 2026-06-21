@@ -7,7 +7,6 @@ import { DashboardSidebarComponent } from '../dashboard-sidebar/dashboard-sideba
 
 import {
   ActivityType,
-  ApiResponse,
   CreateActivityTypeRequest,
   UpdateActivityTypeRequest
 } from '../../models/activity-type.model';
@@ -33,15 +32,17 @@ export class ActivityTypeManagementComponent implements OnInit {
 
   loading = false;
   saving = false;
-  deletingId: string | null = null;
-  loadingDetailsId: string | null = null;
+  deleting = false;
 
   errorMessage = '';
   successMessage = '';
   searchTerm = '';
 
-  selectedActivityTypeId: string | null = null;
-  isEditMode = false;
+  showCreateModal = false;
+  showEditModal = false;
+  showDeleteModal = false;
+
+  selectedActivityType: ActivityType | null = null;
 
   formModel: CreateActivityTypeRequest = {
     code: 0,
@@ -63,13 +64,14 @@ export class ActivityTypeManagementComponent implements OnInit {
     this.successMessage = '';
 
     this.activityTypeService.getAll().subscribe({
-      next: (res: ApiResponse<ActivityType[]>) => {
-        if (res?.isSuccess) {
-          this.activityTypes = res.data || [];
-        } else {
-          this.errorMessage = res?.message || 'حدث خطأ أثناء تحميل أنواع النشاط';
-        }
+      next: (res: any) => {
+        const data = Array.isArray(res)
+          ? res
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
 
+        this.activityTypes = data.map((item: any) => this.mapActivityType(item));
         this.loading = false;
       },
       error: (err: any) => {
@@ -86,7 +88,51 @@ export class ActivityTypeManagementComponent implements OnInit {
     });
   }
 
-  save(): void {
+  openCreateModal(): void {
+    this.resetForm();
+    this.selectedActivityType = null;
+    this.showCreateModal = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  closeCreateModal(): void {
+    this.showCreateModal = false;
+    this.resetForm();
+  }
+
+  openEditModal(item: ActivityType): void {
+    this.selectedActivityType = item;
+
+    this.formModel = {
+      code: Number(item.code || 0),
+      name: item.name || ''
+    };
+
+    this.showEditModal = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.selectedActivityType = null;
+    this.resetForm();
+  }
+
+  openDeleteModal(item: ActivityType): void {
+    this.selectedActivityType = item;
+    this.showDeleteModal = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.selectedActivityType = null;
+  }
+
+  createActivityType(): void {
     this.errorMessage = '';
     this.successMessage = '';
 
@@ -103,28 +149,24 @@ export class ActivityTypeManagementComponent implements OnInit {
       return;
     }
 
-    if (this.isEditMode && this.selectedActivityTypeId) {
-      this.updateActivityType(this.selectedActivityTypeId, { code, name });
-      return;
-    }
-
-    this.createActivityType({ code, name });
-  }
-
-  createActivityType(payload: CreateActivityTypeRequest): void {
     this.saving = true;
 
+    const payload: CreateActivityTypeRequest = {
+      code,
+      name
+    };
+
     this.activityTypeService.create(payload).subscribe({
-      next: (res: ApiResponse<boolean>) => {
-        if (res?.isSuccess) {
-          this.successMessage = res.message || 'تم إنشاء نوع النشاط بنجاح';
-          this.resetForm();
-          this.loadActivityTypes();
-          this.changed.emit();
-        } else {
+      next: (res: any) => {
+        if (res?.isSuccess === false) {
           this.errorMessage =
             res?.message ||
             'لم يتم إنشاء نوع النشاط. ربما يكون الكود موجود بالفعل';
+        } else {
+          this.successMessage = res?.message || 'تم إنشاء نوع النشاط بنجاح';
+          this.closeCreateModal();
+          this.loadActivityTypes();
+          this.changed.emit();
         }
 
         this.saving = false;
@@ -143,57 +185,46 @@ export class ActivityTypeManagementComponent implements OnInit {
     });
   }
 
-  editActivityType(item: ActivityType): void {
+  updateActivityType(): void {
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.selectedActivityTypeId = item.id;
-    this.loadingDetailsId = item.id;
+    if (!this.selectedActivityType) {
+      this.errorMessage = 'لم يتم تحديد نوع النشاط المطلوب تعديله';
+      return;
+    }
 
-    this.activityTypeService.getById(item.id).subscribe({
-      next: (res: ApiResponse<ActivityType>) => {
-        if (res?.isSuccess && res.data) {
-          this.isEditMode = true;
-          this.selectedActivityTypeId = res.data.id;
+    const code = Number(this.formModel.code);
+    const name = this.formModel.name.trim();
 
-          this.formModel = {
-            code: Number(res.data.code || 0),
-            name: res.data.name || ''
-          };
-        } else {
-          this.errorMessage = res?.message || 'تعذر تحميل بيانات نوع النشاط';
-        }
+    if (!Number.isFinite(code) || code <= 0) {
+      this.errorMessage = 'من فضلك أدخلي رقم كود صحيح';
+      return;
+    }
 
-        this.loadingDetailsId = null;
-      },
-      error: (err: any) => {
-        console.error('ActivityType GET BY ID error:', err);
+    if (!name) {
+      this.errorMessage = 'من فضلك أدخلي اسم نوع النشاط';
+      return;
+    }
 
-        this.errorMessage =
-          err?.error?.message ||
-          err?.error?.Message ||
-          err?.message ||
-          'تعذر تحميل بيانات نوع النشاط';
-
-        this.loadingDetailsId = null;
-      }
-    });
-  }
-
-  updateActivityType(id: string, payload: UpdateActivityTypeRequest): void {
     this.saving = true;
 
-    this.activityTypeService.update(id, payload).subscribe({
-      next: (res: ApiResponse<boolean>) => {
-        if (res?.isSuccess) {
-          this.successMessage = res.message || 'تم تعديل نوع النشاط بنجاح';
-          this.resetForm();
-          this.loadActivityTypes();
-          this.changed.emit();
-        } else {
+    const payload: UpdateActivityTypeRequest = {
+      code,
+      name
+    };
+
+    this.activityTypeService.update(this.selectedActivityType.id, payload).subscribe({
+      next: (res: any) => {
+        if (res?.isSuccess === false) {
           this.errorMessage =
             res?.message ||
             'لم يتم تعديل نوع النشاط. ربما يكون الكود موجود بالفعل';
+        } else {
+          this.successMessage = res?.message || 'تم تعديل نوع النشاط بنجاح';
+          this.closeEditModal();
+          this.loadActivityTypes();
+          this.changed.emit();
         }
 
         this.saving = false;
@@ -212,30 +243,29 @@ export class ActivityTypeManagementComponent implements OnInit {
     });
   }
 
-  deleteActivityType(item: ActivityType): void {
-    const confirmed = confirm(`هل تريدين حذف نوع النشاط "${item.name}"؟`);
-    if (!confirmed) return;
-
+  confirmDeleteActivityType(): void {
     this.errorMessage = '';
     this.successMessage = '';
-    this.deletingId = item.id;
 
-    this.activityTypeService.delete(item.id).subscribe({
-      next: (res: ApiResponse<boolean>) => {
-        if (res?.isSuccess) {
-          this.successMessage = res.message || 'تم حذف نوع النشاط بنجاح';
+    if (!this.selectedActivityType) {
+      this.errorMessage = 'لم يتم تحديد نوع النشاط المطلوب حذفه';
+      return;
+    }
 
-          if (this.selectedActivityTypeId === item.id) {
-            this.resetForm();
-          }
+    this.deleting = true;
 
+    this.activityTypeService.delete(this.selectedActivityType.id).subscribe({
+      next: (res: any) => {
+        if (res?.isSuccess === false) {
+          this.errorMessage = res?.message || 'حدث خطأ أثناء حذف نوع النشاط';
+        } else {
+          this.successMessage = res?.message || 'تم حذف نوع النشاط بنجاح';
+          this.closeDeleteModal();
           this.loadActivityTypes();
           this.changed.emit();
-        } else {
-          this.errorMessage = res?.message || 'حدث خطأ أثناء حذف نوع النشاط';
         }
 
-        this.deletingId = null;
+        this.deleting = false;
       },
       error: (err: any) => {
         console.error('ActivityType DELETE error:', err);
@@ -246,7 +276,7 @@ export class ActivityTypeManagementComponent implements OnInit {
           err?.message ||
           'حدث خطأ أثناء حذف نوع النشاط';
 
-        this.deletingId = null;
+        this.deleting = false;
       }
     });
   }
@@ -257,10 +287,8 @@ export class ActivityTypeManagementComponent implements OnInit {
       name: ''
     };
 
-    this.selectedActivityTypeId = null;
-    this.isEditMode = false;
+    this.selectedActivityType = null;
     this.saving = false;
-    this.loadingDetailsId = null;
   }
 
   get filteredActivityTypes(): ActivityType[] {
@@ -319,8 +347,24 @@ export class ActivityTypeManagementComponent implements OnInit {
     this.router.navigateByUrl('/civil-defense/activity-types');
   }
 
+  openDistrictManager(): void {
+    this.router.navigateByUrl('/civil-defense/districts');
+  }
+
+  openRequestingEntitiesManager(): void {
+    this.router.navigateByUrl('/civil-defense/requesting-entities');
+  }
+
   logout(): void {
     localStorage.clear();
     this.router.navigateByUrl('/login');
+  }
+
+  private mapActivityType(item: any): ActivityType {
+    return {
+      id: String(item?.id ?? item?.Id ?? ''),
+      code: Number(item?.code ?? item?.Code ?? 0),
+      name: String(item?.name ?? item?.Name ?? '')
+    };
   }
 }
