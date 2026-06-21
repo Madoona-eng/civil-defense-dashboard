@@ -1,0 +1,39 @@
+<div class="delete-backdrop" (click)="close()">
+  <section class="delete-modal" dir="rtl" (click)="$event.stopPropagation()">
+    <div class="delete-icon">
+      !
+    </div>
+
+    <h2>تأكيد الحذف</h2>
+
+    <p>
+      هل تريد حذف نوع النشاط
+      <strong>"{{ item?.name }}"</strong>
+      ؟
+    </p>
+
+    <span class="warning-text">
+      لا يمكن التراجع عن هذه العملية بعد تنفيذ الحذف.
+    </span>
+
+    <div class="delete-actions">
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="close()"
+        [disabled]="deleting"
+      >
+        إلغاء
+      </button>
+
+      <button
+        type="button"
+        class="confirm-btn"
+        (click)="confirmDelete()"
+        [disabled]="deleting"
+      >
+        {{ deleting ? 'جاري الحذف...' : 'تأكيد الحذف' }}
+      </button>
+    </div>
+  </section>
+</div>

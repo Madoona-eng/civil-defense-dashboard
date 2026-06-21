@@ -1,0 +1,52 @@
+<div class="activity-shell" dir="rtl">
+  <app-civil-defense-dashboard-sidebar
+    [selectedStatus]="'ACTIVITY_TYPES'"
+    [userName]="getUserName()"
+    [userRole]="getUserRole()"
+    [totalRequests]="0"
+    [newRequests]="0"
+    [inspectionRequests]="0"
+    [finalApprovalRequests]="0"
+    (statusSelected)="selectStatus($event)"
+    (createRequest)="openCreateRequest()"
+    (openInspection)="openInspectionQueue()"
+    (openApprovals)="openFinalApprovals()"
+    (openArchive)="openArchive()"
+    (manageActivityTypes)="openActivityTypesManager()"
+    (logoutRequested)="logout()"
+  ></app-civil-defense-dashboard-sidebar>
+
+  <main class="activity-page">
+    <header class="page-header">
+      <button type="button" class="back-btn" (click)="goToDashboard()">
+        رجوع للوحة الطلبات
+      </button>
+
+      <div class="header-content">
+        <span class="page-badge">أنواع النشاط</span>
+
+        <h1>إدارة أنواع النشاط</h1>
+
+        <p>
+          يمكنك إضافة نوع نشاط جديد، تعديله، حذفه، أو البحث عنه بسهولة.
+        </p>
+      </div>
+
+      <button type="button" class="add-main-btn" (click)="openAddModal()">
+        + إضافة نوع نشاط
+      </button>
+    </header>
+
+    <app-list
+      (editRequested)="onEditActivityType($event)"
+      (changed)="onListChanged()"
+    ></app-list>
+  </main>
+
+  <app-add
+    *ngIf="isAddModalOpen"
+    [selectedActivityTypeId]="selectedActivityTypeId"
+    (saved)="onFormSaved()"
+    (cancelled)="closeAddModal()"
+  ></app-add>
+</div>

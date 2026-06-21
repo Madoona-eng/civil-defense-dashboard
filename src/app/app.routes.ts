@@ -30,9 +30,9 @@ export const routes: Routes = [
   {
     path: 'civil-defense/activity-types',
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./civil-defense/components/activity-type-management/activity-type-management.component')
-        .then(m => m.ActivityTypeManagementComponent)
+    loadChildren: () =>
+      import('./ActivityType/activity-type.module')
+        .then(m => m.ActivityTypeModule)
   },
   {
     path: 'civil-defense/districts',
@@ -44,12 +44,5 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'login'
-  },
-  {
-  path: 'civil-defense/districts',
-  canActivate: [authGuard],
-  loadComponent: () =>
-    import('./civil-defense/components/district-management/district-management.component')
-      .then(m => m.DistrictManagementComponent)
-}
+  }
 ];
