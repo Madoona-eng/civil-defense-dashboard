@@ -1,0 +1,126 @@
+<div class="table-card">
+  <div class="table-head">
+    <div>
+      <h2>طلبات الحماية المدنية</h2>
+      <p>جدول قريب من الرسم: بيانات الطلب + مسار الإدارات + الحالة + الإجراءات.</p>
+    </div>
+    <span>{{ requests.length }} طلب</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>كود المعاملة</th>
+          <th>تاريخ الورود</th>
+          <th>اسم المنشأة</th>
+          <th>جهة / صاحب الطلب</th>
+          <th>نوع النشاط</th>
+          <th>مسار الإدارات</th>
+          <th>المرفقات</th>
+          <th>الحالة</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of requests; trackBy: trackByRequestId">
+          <td class="request-number">
+            {{ item.requestNumber }}
+            <small>محافظة: {{ item.governorateCode }}</small>
+          </td>
+
+          <td>
+            <strong>{{ item.transactionCode || '-' }}</strong>
+            <small>نشاط: {{ item.activityCode || '-' }}</small>
+          </td>
+
+          <td>
+            {{ item.incomingDate || item.requestDate || '-' }}
+            <small *ngIf="item.licenseNumber">رخصة: {{ item.licenseNumber }}</small>
+          </td>
+
+          <td>
+            <strong>{{ item.facilityName }}</strong>
+            <small>{{ item.facilityAddress }}</small>
+          </td>
+
+          <td>
+            <strong>{{ item.requestingEntity }}</strong>
+            <small>{{ item.applicantName }} - {{ item.mobile }}</small>
+          </td>
+
+          <td>
+            {{ item.activityType }}
+            <small>{{ item.center }} {{ item.village ? '- ' + item.village : '' }}</small>
+            <span class="hazard" [class.high]="item.hazardLevel === 'عالية'" [class.medium]="item.hazardLevel === 'متوسطة'">
+              {{ item.hazardLevel }}
+            </span>
+          </td>
+
+          <td class="workflow-cell">
+            <span
+              class="workflow-chip"
+              *ngFor="let step of getWorkflowSteps(item); trackBy: trackByWorkflowKey"
+              [ngClass]="step.state"
+              [title]="step.label + ' - ' + step.stateLabel"
+            >
+              {{ step.label }}: {{ step.stateLabel }}
+            </span>
+          </td>
+
+          <td>
+            <span class="attachment-count">{{ getAttachmentsCount(item) }}</span>
+          </td>
+
+          <td>
+            <span class="status" [ngClass]="item.status">
+              {{ getStatusLabel(item.status) }}
+            </span>
+          </td>
+
+          <td>
+            <div class="actions">
+              <button type="button" class="soft" (click)="edit.emit(item)">تعديل</button>
+
+              <button type="button" *ngIf="canReview(item)" (click)="reviewDocuments(item)">
+                إرسال للإدارات
+              </button>
+
+              <button type="button" *ngIf="canSchedule(item)" (click)="scheduleInspection(item)">
+                إجراء المعاينة
+              </button>
+
+              <button type="button" *ngIf="canOpenInspection(item)" (click)="inspection.emit(item)">
+                تقرير معاينة
+              </button>
+
+              <button type="button" *ngIf="canApprove(item)" (click)="markFinalApproval(item)">
+                موافقة نهائية
+              </button>
+
+              <button type="button" *ngIf="canArchive(item)" (click)="archive(item)">
+                أرشفة
+              </button>
+
+              <button type="button" *ngIf="canReject(item)" class="warning" (click)="reject(item)">
+                رفض
+              </button>
+
+              <button type="button" class="danger" (click)="removed.emit(item.id)">
+                حذف
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="requests.length === 0">
+          <td colspan="10" class="empty">
+            لا توجد طلبات مطابقة للبحث أو الفلتر الحالي.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

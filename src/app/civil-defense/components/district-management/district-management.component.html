@@ -1,0 +1,169 @@
+<div class="entity-shell" dir="rtl">
+  <app-civil-defense-dashboard-sidebar
+    [selectedStatus]="'DISTRICTS'"
+    [userName]="getUserName()"
+    [userRole]="getUserRole()"
+    [totalRequests]="0"
+    [newRequests]="0"
+    [inspectionRequests]="0"
+    [finalApprovalRequests]="0"
+    (statusSelected)="selectStatus($event)"
+    (createRequest)="openCreateRequest()"
+    (openInspection)="openInspectionQueue()"
+    (openApprovals)="openFinalApprovals()"
+    (openArchive)="openArchive()"
+    (logoutRequested)="logout()"
+  ></app-civil-defense-dashboard-sidebar>
+
+  <main class="entity-page">
+    <header class="page-header">
+      <button type="button" class="back-btn" (click)="goToDashboard()">
+        رجوع للوحة الطلبات
+      </button>
+
+      <div>
+        <span class="page-badge">المراكز</span>
+
+        <h1>إضافة وإدارة المراكز</h1>
+
+        <p>
+          يمكنك إضافة مركز جديد، تعديله، حذفه، أو عرض تفاصيله.
+        </p>
+      </div>
+    </header>
+
+    <div class="messages" *ngIf="errorMessage || successMessage">
+      <div class="alert error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="alert success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+    </div>
+
+    <section class="page-grid">
+      <section class="form-card">
+        <div class="card-header">
+          <h2>{{ isEditMode ? 'تعديل مركز' : 'إضافة مركز جديد' }}</h2>
+
+          <p>
+            {{
+              isEditMode
+                ? 'عدلي بيانات المركز ثم اضغطي حفظ التعديل'
+                : 'أدخلي رقم الكود واسم المركز'
+            }}
+          </p>
+        </div>
+
+        <label>
+          <span>رقم الكود</span>
+
+          <input
+            type="number"
+            min="1"
+            name="code"
+            [(ngModel)]="formModel.code"
+            placeholder="مثال: 1"
+          />
+        </label>
+
+        <label>
+          <span>اسم المركز</span>
+
+          <input
+            type="text"
+            name="name"
+            [(ngModel)]="formModel.name"
+            placeholder="مثال: مركز المنيا"
+          />
+        </label>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="primary-btn"
+            (click)="save()"
+            [disabled]="saving"
+          >
+            {{
+              saving
+                ? 'جاري الحفظ...'
+                : isEditMode
+                  ? 'حفظ التعديل'
+                  : 'حفظ المركز'
+            }}
+          </button>
+
+          <button type="button" class="ghost-btn" (click)="resetForm()">
+            {{ isEditMode ? 'إلغاء التعديل' : 'إعادة تعيين' }}
+          </button>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="list-header">
+          <div>
+            <h2>قائمة المراكز</h2>
+            <p>{{ filteredDistricts.length }} مركز</p>
+          </div>
+
+          <button type="button" class="refresh-btn" (click)="loadDistricts()">
+            تحديث
+          </button>
+        </div>
+
+        <div class="search-box">
+          <input
+            type="text"
+            name="searchTerm"
+            [(ngModel)]="searchTerm"
+            placeholder="ابحثي باسم المركز أو المعرف"
+          />
+        </div>
+
+        <div class="loading-box" *ngIf="loading">
+          جاري تحميل المراكز...
+        </div>
+
+        <div class="empty-box" *ngIf="!loading && filteredDistricts.length === 0">
+          لا توجد مراكز حتى الآن
+        </div>
+
+        <div class="entity-list" *ngIf="!loading && filteredDistricts.length > 0">
+          <article
+            class="entity-row"
+            *ngFor="let item of filteredDistricts; trackBy: trackById"
+            [class.selected]="selectedDistrictId === item.id"
+          >
+            <div class="entity-main">
+              <strong>{{ item.name }}</strong>
+              <span>المعرف: {{ item.id }}</span>
+              <small *ngIf="item.code">كود المركز: {{ item.code }}</small>
+            </div>
+
+            <div class="entity-actions">
+              <button
+                type="button"
+                class="edit-btn"
+                (click)="editDistrict(item)"
+                [disabled]="loadingDetailsId === item.id"
+              >
+                {{ loadingDetailsId === item.id ? 'تحميل...' : 'تعديل' }}
+              </button>
+
+              <button
+                type="button"
+                class="delete-btn"
+                (click)="deleteDistrict(item)"
+                [disabled]="deletingId === item.id"
+              >
+                {{ deletingId === item.id ? 'حذف...' : 'حذف' }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>

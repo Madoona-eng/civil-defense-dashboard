@@ -1,0 +1,97 @@
+<aside class="dashboard-sidebar" dir="rtl">
+  <div class="brand">
+    <div class="brand-mark">م</div>
+
+    <div>
+      <h2>الحماية المدنية</h2>
+      <p>نظام التراخيص والمعاينات</p>
+    </div>
+  </div>
+
+  <div class="user-card">
+    <div class="avatar">
+      {{ userName ? userName.charAt(0) : 'A' }}
+    </div>
+
+    <div>
+      <strong>{{ userName || 'Admin' }}</strong>
+      <span>{{ userRole || 'مدير النظام' }}</span>
+    </div>
+  </div>
+
+  <div class="mini-stats">
+    <div>
+      <strong>{{ totalRequests }}</strong>
+      <span>كل الطلبات</span>
+    </div>
+
+    <div>
+      <strong>{{ newRequests }}</strong>
+      <span>جديدة</span>
+    </div>
+
+    <div>
+      <strong>{{ inspectionRequests }}</strong>
+      <span>معاينات</span>
+    </div>
+
+    <div>
+      <strong>{{ finalApprovalRequests }}</strong>
+      <span>موافقات</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <button
+      type="button"
+      *ngFor="let item of mainItems; trackBy: trackByLabel"
+      [class.active]="isActive(item)"
+      [class.create]="item.action === 'create'"
+      (click)="onItemClick(item)"
+    >
+      <span class="nav-icon">{{ item.icon }}</span>
+      <span class="nav-label">{{ item.label }}</span>
+    </button>
+  </nav>
+
+ <div class="sidebar-footer">
+  <button
+    type="button"
+    class="footer-btn settings-btn"
+    [class.active]="selectedStatus === 'ACTIVITY_TYPES'"
+    (click)="openActivityTypes()"
+  >
+    <span class="footer-icon">⚙️</span>
+    <strong>إدارة أنواع النشاط</strong>
+  </button>
+
+  <button
+    type="button"
+    class="footer-btn entity-btn"
+    [class.active]="selectedStatus === 'REQUESTING_ENTITIES'"
+    (click)="goToRequestingEntities()"
+  >
+    <span class="footer-icon">🏢</span>
+    <strong>إضافة جهة</strong>
+  </button>
+
+  <button
+    type="button"
+    class="footer-btn district-btn"
+    [class.active]="selectedStatus === 'DISTRICTS'"
+    (click)="goToDistricts()"
+  >
+    <span class="footer-icon">📍</span>
+    <strong>المراكز</strong>
+  </button>
+
+  <button
+    type="button"
+    class="footer-btn logout-btn"
+    (click)="onLogout()"
+  >
+    <span class="footer-icon">🚪</span>
+    <strong>تسجيل خروج</strong>
+  </button>
+</div>
+</aside>

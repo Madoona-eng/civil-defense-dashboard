@@ -1,0 +1,103 @@
+<div class="overlay" *ngIf="request">
+  <section class="inspection-panel">
+    <div class="panel-head">
+      <div>
+        <h2>تقرير المعاينة</h2>
+        <p>
+          {{ request.requestNumber }} — {{ request.facilityName }} — {{ request.activityType }}
+        </p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="close()">×</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="form-grid">
+        <div class="field">
+          <label>تاريخ المعاينة المحدد</label>
+          <input type="date" formControlName="scheduledDate" />
+        </div>
+
+        <div class="field">
+          <label>تاريخ تنفيذ المعاينة</label>
+          <input type="date" formControlName="inspectionDate" />
+        </div>
+
+        <div class="field full">
+          <label>اسم المعاين <b>*</b></label>
+          <input type="text" formControlName="inspectorName" placeholder="اسم الموظف / المعاين" />
+          <small *ngIf="isInvalid('inspectorName')">اسم المعاين مطلوب</small>
+        </div>
+      </div>
+
+      <div class="checklist">
+        <label>
+          <input type="checkbox" formControlName="hasFireExtinguishers" />
+          يوجد طفايات حريق
+        </label>
+
+        <label>
+          <input type="checkbox" formControlName="hasEmergencyExits" />
+          يوجد مخارج طوارئ
+        </label>
+
+        <label>
+          <input type="checkbox" formControlName="hasFireAlarm" />
+          يوجد إنذار حريق
+        </label>
+
+        <label>
+          <input type="checkbox" formControlName="hasFireNetwork" />
+          يوجد شبكة إطفاء
+        </label>
+
+        <label>
+          <input type="checkbox" formControlName="hasVentilation" />
+          توجد تهوية مناسبة
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <div class="field full">
+          <label>ملاحظات المعاينة</label>
+          <textarea rows="3" formControlName="notes" placeholder="ملاحظات المعاين"></textarea>
+        </div>
+
+        <div class="field full">
+          <label>التوصيات</label>
+          <textarea rows="3" formControlName="recommendations" placeholder="توصيات الحماية المدنية"></textarea>
+        </div>
+
+        <div class="field full">
+          <label>بنود الاستيفاء المطلوبة</label>
+          <textarea rows="3" formControlName="requiredActions" placeholder="اكتبي المطلوب من صاحب الطلب لو المكان غير مستوفي"></textarea>
+        </div>
+
+        <div class="field">
+          <label>تاريخ معاينة لاحقة</label>
+          <input type="date" formControlName="nextInspectionDate" />
+        </div>
+
+        <div class="field">
+          <label>نتيجة المعاينة</label>
+          <select formControlName="result">
+            <option *ngFor="let result of resultOptions" [value]="result">
+              {{ resultLabels[result] }}
+            </option>
+          </select>
+        </div>
+
+        <div class="file-field full">
+          <label>ملف تقرير المعاينة PDF</label>
+          <input type="file" accept="application/pdf" (change)="onReportFileSelected($event)" />
+          <span>{{ form.controls.reportFile.value || 'لم يتم اختيار ملف' }}</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="primary">حفظ تقرير المعاينة</button>
+        <button type="button" class="ghost" (click)="close()">إغلاق</button>
+      </div>
+    </form>
+  </section>
+</div>

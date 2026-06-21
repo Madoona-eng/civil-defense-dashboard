@@ -1,0 +1,57 @@
+<header class="dashboard-header" dir="rtl">
+  <div class="title-block">
+    <span class="eyebrow">الحماية المدنية</span>
+
+    <h1>{{ title }}</h1>
+
+    <p>{{ subtitle }}</p>
+  </div>
+
+  <div class="header-main-actions">
+    <div class="search-box">
+      <label>بحث سريع</label>
+
+      <input
+        type="text"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="ابحثي برقم الطلب، كود المعاملة، اسم المنشأة، صاحب الطلب..."
+      />
+    </div>
+
+    <div class="filter-pill">
+      <span>الفلتر الحالي</span>
+      <strong>{{ selectedStatusLabel }}</strong>
+    </div>
+
+    <div class="result-pill">
+      <span>النتائج</span>
+      <strong>{{ resultCount }}</strong>
+    </div>
+
+    <button type="button" class="create-btn" (click)="createRequest.emit()">
+      + طلب جديد
+    </button>
+  </div>
+
+  <div class="user-actions">
+    <div class="user-card">
+      <div class="avatar">
+        {{ userName ? userName.charAt(0) : 'A' }}
+      </div>
+
+      <div>
+        <strong>{{ userName || 'Admin' }}</strong>
+        <span>{{ userRole || 'مدير النظام' }}</span>
+      </div>
+    </div>
+
+    <button type="button" class="refresh-btn" (click)="refreshRequested.emit()">
+      تحديث
+    </button>
+
+    <button type="button" class="logout-btn" (click)="logoutRequested.emit()">
+      خروج
+    </button>
+  </div>
+</header>

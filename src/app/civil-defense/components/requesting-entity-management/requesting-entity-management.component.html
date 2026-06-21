@@ -1,0 +1,178 @@
+<div class="entity-shell" dir="rtl">
+  <app-civil-defense-dashboard-sidebar
+    [selectedStatus]="'REQUESTING_ENTITIES'"
+    [userName]="getUserName()"
+    [userRole]="getUserRole()"
+    [totalRequests]="0"
+    [newRequests]="0"
+    [inspectionRequests]="0"
+    [finalApprovalRequests]="0"
+    (statusSelected)="selectStatus($event)"
+    (createRequest)="openCreateRequest()"
+    (openInspection)="openInspectionQueue()"
+    (openApprovals)="openFinalApprovals()"
+    (openArchive)="openArchive()"
+    (manageActivityTypes)="openActivityTypesManager()"
+    (logoutRequested)="logout()"
+  ></app-civil-defense-dashboard-sidebar>
+
+  <main class="entity-page">
+    <header class="page-header">
+      <button type="button" class="back-btn" (click)="goToDashboard()">
+        رجوع للوحة الطلبات
+      </button>
+
+      <div>
+        <span class="page-badge">الجهات الطالبة</span>
+
+        <h1>إضافة وإدارة الجهات الطالبة</h1>
+
+        <p>
+          يمكنك إضافة جهة طالبة جديدة، تعديلها، حذفها، أو عرض تفاصيلها.
+        </p>
+      </div>
+    </header>
+
+    <div class="messages" *ngIf="errorMessage || successMessage">
+      <div class="alert error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="alert success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+    </div>
+
+    <section class="page-grid">
+      <section class="form-card">
+        <div class="card-header">
+          <h2>{{ isEditMode ? 'تعديل جهة طالبة' : 'إضافة جهة جديدة' }}</h2>
+
+          <p>
+            {{
+              isEditMode
+                ? 'عدلي بيانات الجهة ثم اضغطي حفظ التعديل'
+                : 'أدخلي رقم الكود واسم الجهة الطالبة'
+            }}
+          </p>
+        </div>
+
+        <label>
+          <span>رقم الكود</span>
+
+          <input
+            type="number"
+            min="1"
+            name="code"
+            [(ngModel)]="formModel.code"
+            placeholder="مثال: 4"
+          />
+        </label>
+
+        <label>
+          <span>اسم الجهة</span>
+
+          <input
+            type="text"
+            name="name"
+            [(ngModel)]="formModel.name"
+            placeholder="مثال: مديرية الصحة والسكان"
+          />
+        </label>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="primary-btn"
+            (click)="save()"
+            [disabled]="saving"
+          >
+            {{
+              saving
+                ? 'جاري الحفظ...'
+                : isEditMode
+                  ? 'حفظ التعديل'
+                  : 'حفظ الجهة'
+            }}
+          </button>
+
+          <button type="button" class="ghost-btn" (click)="resetForm()">
+            {{ isEditMode ? 'إلغاء التعديل' : 'إعادة تعيين' }}
+          </button>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="list-header">
+          <div>
+            <h2>قائمة الجهات الطالبة</h2>
+            <p>{{ filteredEntities.length }} جهة</p>
+          </div>
+
+          <button type="button" class="refresh-btn" (click)="loadEntities()">
+            تحديث
+          </button>
+        </div>
+
+        <div class="search-box">
+          <input
+            type="text"
+            name="searchTerm"
+            [(ngModel)]="searchTerm"
+            placeholder="ابحثي باسم الجهة أو المعرف"
+          />
+        </div>
+
+        <div class="loading-box" *ngIf="loading">
+          جاري تحميل الجهات الطالبة...
+        </div>
+
+        <div class="empty-box" *ngIf="!loading && filteredEntities.length === 0">
+          لا توجد جهات طالبة حتى الآن
+        </div>
+
+        <div class="entity-list" *ngIf="!loading && filteredEntities.length > 0">
+          <article
+            class="entity-row"
+            *ngFor="let item of filteredEntities; trackBy: trackById"
+            [class.selected]="selectedEntityId === item.id"
+          >
+            <div class="entity-main">
+              <strong>{{ item.name }}</strong>
+              <span>المعرف: {{ item.id }}</span>
+              <small *ngIf="item.code">كود الجهة: {{ item.code }}</small>
+            </div>
+
+            <div class="entity-actions">
+              <button
+                type="button"
+                class="edit-btn"
+                (click)="editEntity(item)"
+                [disabled]="loadingDetailsId === item.id"
+              >
+                {{
+                  loadingDetailsId === item.id
+                    ? 'تحميل...'
+                    : 'تعديل'
+                }}
+              </button>
+
+              <button
+                type="button"
+                class="delete-btn"
+                (click)="deleteEntity(item)"
+                [disabled]="deletingId === item.id"
+              >
+                {{
+                  deletingId === item.id
+                    ? 'حذف...'
+                    : 'حذف'
+                }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>

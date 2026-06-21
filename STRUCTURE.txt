@@ -1,0 +1,39 @@
+civil-defense-angular-mock/
+├── angular.json
+├── package.json
+├── package-lock.json
+├── README_AR.md
+├── STRUCTURE.txt
+├── tsconfig.json
+├── tsconfig.app.json
+└── src/
+    ├── main.ts
+    ├── index.html
+    ├── styles.scss
+    ├── app/
+    │   ├── app.component.ts
+    │   ├── app.component.html
+    │   ├── app.component.scss
+    │   ├── app.config.ts
+    │   ├── app.routes.ts
+    │   ├── auth/
+    │   │   ├── components/login/
+    │   │   │   ├── login.component.ts
+    │   │   │   ├── login.component.html
+    │   │   │   └── login.component.scss
+    │   │   ├── guards/auth.guard.ts
+    │   │   ├── models/auth-user.model.ts
+    │   │   └── services/auth.service.ts
+    │   └── civil-defense/
+    │       ├── models/civil-defense-request.model.ts
+    │       ├── services/civil-defense-mock.service.ts
+    │       └── components/
+    │           ├── civil-defense-page/
+    │           ├── request-form/
+    │           ├── requests-table/
+    │           └── inspection-form/
+    └── assets/mock/
+        ├── civil-defense-requests.json
+        ├── activity-types.json
+        ├── hazard-levels.json
+        └── inspection-checklist.json

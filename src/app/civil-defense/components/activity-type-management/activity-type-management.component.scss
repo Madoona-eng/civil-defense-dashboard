@@ -1,0 +1,79 @@
+@use '../requesting-entity-management/requesting-entity-management.component.scss';
+
+.activity-shell {
+  width: 100%;
+  min-height: 100vh;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-areas: "sidebar main";
+  overflow: hidden;
+}
+
+app-civil-defense-dashboard-sidebar {
+  grid-area: sidebar;
+  width: 320px;
+  min-width: 320px;
+  height: 100vh;
+  display: block;
+}
+
+.activity-page {
+  grid-area: main;
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 28px;
+}
+
+.activity-list {
+  display: grid;
+  gap: 12px;
+}
+
+.activity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid rgba(18, 52, 88, 0.1);
+  border-radius: 18px;
+  background: #f8fbff;
+
+  &.selected {
+    border-color: rgba(11, 107, 115, 0.45);
+    background: rgba(11, 107, 115, 0.06);
+  }
+}
+
+.activity-main {
+  strong {
+    display: block;
+    color: #123458;
+    font-size: 16px;
+    font-weight: 900;
+    margin-bottom: 5px;
+  }
+
+  span {
+    color: #6b7a90;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  small {
+    display: block;
+    margin-top: 5px;
+    color: #0b6b73;
+    font-weight: 800;
+    font-size: 12px;
+  }
+}
+
+.activity-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

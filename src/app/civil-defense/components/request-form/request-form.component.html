@@ -1,0 +1,456 @@
+<form class="request-form" #requestForm="ngForm" (ngSubmit)="submit()" id="civilDefenseRequestForm" dir="rtl">
+  <div class="form-head">
+    <div>
+      <h2>{{ requestToEdit ? 'تعديل طلب ترخيص / حماية مدنية' : 'إضافة طلب ترخيص / حماية مدنية' }}</h2>
+      <p>بيانات الطلب، صاحب الطلب، المنشأة، والمرفقات.</p>
+    </div>
+
+    <span class="mode-badge" [class.edit]="requestToEdit">
+      {{ requestToEdit ? 'وضع التعديل' : 'طلب جديد' }}
+    </span>
+  </div>
+
+  <div class="alert success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="alert error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="alert error" *ngIf="activityTypesError">
+    {{ activityTypesError }}
+  </div>
+
+  <div class="alert error" *ngIf="districtsError">
+    {{ districtsError }}
+  </div>
+
+  <section class="form-section">
+    <h3>بيانات الرخصة والطلب</h3>
+
+    <div class="form-grid">
+      <label>
+        <span>كود المحافظة *</span>
+        <input
+          type="number"
+          name="governorateCode"
+          [(ngModel)]="formModel.governorateCode"
+          required
+        />
+        <small *ngIf="isInvalid('governorateCode')">كود المحافظة مطلوب</small>
+      </label>
+
+      <label>
+        <span>كود المعاملة *</span>
+        <input
+          type="text"
+          name="transactionCode"
+          [(ngModel)]="formModel.transactionCode"
+          placeholder="مثال: TR-2026-001"
+          required
+        />
+        <small *ngIf="isInvalid('transactionCode')">كود المعاملة مطلوب</small>
+      </label>
+
+      <label>
+        <span>نوع النشاط *</span>
+
+        <select
+          name="activityTypeId"
+          [(ngModel)]="formModel.activityTypeId"
+          (ngModelChange)="onActivityTypeChange()"
+          required
+          [disabled]="activityTypesLoading"
+        >
+          <option value="">
+            {{ activityTypesLoading ? 'جاري تحميل أنواع النشاط...' : 'اختر نوع النشاط' }}
+          </option>
+
+          <option
+            *ngFor="let type of activeActivityTypes; trackBy: trackByActivityTypeId"
+            [value]="type.id"
+          >
+            {{ type.code }} - {{ type.name }}
+          </option>
+        </select>
+
+        <small *ngIf="isInvalid('activityTypeId')">نوع النشاط مطلوب</small>
+      </label>
+
+      <label>
+        <span>تاريخ الطلب *</span>
+        <input
+          type="date"
+          name="requestDate"
+          [(ngModel)]="formModel.requestDate"
+          required
+        />
+        <small *ngIf="isInvalid('requestDate')">تاريخ الطلب مطلوب</small>
+      </label>
+
+      <label>
+        <span>تاريخ الورود</span>
+        <input
+          type="date"
+          name="incomingDate"
+          [(ngModel)]="formModel.incomingDate"
+        />
+      </label>
+
+      <label>
+        <span>رقم الرخصة</span>
+        <input
+          type="text"
+          name="licenseNumber"
+          [(ngModel)]="formModel.licenseNumber"
+          placeholder="مثال: LIC-2026-0045"
+        />
+      </label>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h3>جهة الطلب وصاحب الطلب</h3>
+
+    <div class="form-grid">
+      <label>
+        <span>RequestingEntityId *</span>
+        <input
+          type="text"
+          name="requestingEntityId"
+          [(ngModel)]="formModel.requestingEntityId"
+          placeholder="ضعي UUID الخاص بجهة الطلب مؤقتًا"
+          required
+        />
+        <small *ngIf="isInvalid('requestingEntityId')">جهة الطلب مطلوبة</small>
+      </label>
+
+     <label>
+  <span>جهة الطلب *</span>
+
+  <select
+    name="requestingEntityId"
+    [(ngModel)]="formModel.requestingEntityId"
+    (ngModelChange)="onRequestingEntityChange()"
+    required
+    [disabled]="requestingEntitiesLoading"
+  >
+    <option value="">
+      {{ requestingEntitiesLoading ? 'جاري تحميل جهات الطلب...' : 'اختر جهة الطلب' }}
+    </option>
+
+    <option
+      *ngFor="let entity of activeRequestingEntities; trackBy: trackByRequestingEntityId"
+      [value]="entity.id"
+    >
+      {{ entity.name }}
+    </option>
+  </select>
+
+  <small *ngIf="isInvalid('requestingEntityId')">جهة الطلب مطلوبة</small>
+</label>
+
+      <label>
+        <span>اسم صاحب الطلب *</span>
+        <input
+          type="text"
+          name="applicantName"
+          [(ngModel)]="formModel.applicantName"
+          placeholder="مثال: أحمد محمد"
+          required
+        />
+        <small *ngIf="isInvalid('applicantName')">اسم صاحب الطلب مطلوب</small>
+      </label>
+
+      <label>
+        <span>صفة مقدم الطلب</span>
+        <select name="applicantRole" [(ngModel)]="formModel.applicantRole">
+          <option value="">اختر الصفة</option>
+          <option *ngFor="let role of applicantRoles" [value]="role">
+            {{ role }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        <span>الرقم القومي</span>
+        <input
+          type="text"
+          name="nationalId"
+          [(ngModel)]="formModel.nationalId"
+          placeholder="14 رقم"
+          maxlength="14"
+        />
+      </label>
+
+      <label>
+        <span>المسئول / المدير المسئول</span>
+        <input
+          type="text"
+          name="responsibleManager"
+          [(ngModel)]="formModel.responsibleManager"
+          placeholder="مثال: محمد أحمد"
+        />
+      </label>
+
+      <label>
+        <span>رقم المحمول</span>
+        <input
+          type="text"
+          name="mobile"
+          [(ngModel)]="formModel.mobile"
+          placeholder="01000000000"
+        />
+      </label>
+
+      <label class="wide">
+        <span>عنوان مقدم الطلب</span>
+        <input
+          type="text"
+          name="applicantAddress"
+          [(ngModel)]="formModel.applicantAddress"
+        />
+      </label>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h3>بيانات المنشأة</h3>
+
+    <div class="form-grid">
+      <label>
+        <span>اسم المنشأة *</span>
+        <input
+          type="text"
+          name="facilityName"
+          [(ngModel)]="formModel.facilityName"
+          placeholder="مثال: مطعم النور"
+          required
+        />
+        <small *ngIf="isInvalid('facilityName')">اسم المنشأة مطلوب</small>
+      </label>
+
+      <label>
+        <span>نوع النشاط</span>
+        <input
+          type="text"
+          name="activityType"
+          [(ngModel)]="formModel.activityType"
+          readonly
+        />
+      </label>
+
+      <label class="wide">
+        <span>عنوان المنشأة *</span>
+        <input
+          type="text"
+          name="facilityAddress"
+          [(ngModel)]="formModel.facilityAddress"
+          placeholder="شارع / منطقة / رقم"
+          required
+        />
+        <small *ngIf="isInvalid('facilityAddress')">عنوان المنشأة مطلوب</small>
+      </label>
+
+      <label>
+        <span>المركز *</span>
+
+        <select
+          name="districtId"
+          [(ngModel)]="formModel.districtId"
+          (ngModelChange)="onDistrictChange()"
+          required
+          [disabled]="districtsLoading"
+        >
+          <option value="">
+            {{ districtsLoading ? 'جاري تحميل المراكز...' : 'اختر المركز' }}
+          </option>
+
+          <option
+            *ngFor="let district of activeDistricts; trackBy: trackByDistrictId"
+            [value]="district.id"
+          >
+            {{ district.name }}
+          </option>
+        </select>
+
+        <small *ngIf="isInvalid('districtId')">المركز مطلوب</small>
+      </label>
+
+      <label>
+        <span>المساحة</span>
+        <input
+          type="number"
+          name="area"
+          [(ngModel)]="formModel.area"
+        />
+      </label>
+
+      <label>
+        <span>عدد الأدوار</span>
+        <input
+          type="number"
+          name="floorsCount"
+          [(ngModel)]="formModel.floorsCount"
+        />
+      </label>
+
+      <label>
+        <span>طبيعة الاشتغال</span>
+        <input
+          type="text"
+          name="workNature"
+          [(ngModel)]="formModel.workNature"
+        />
+      </label>
+
+      <label>
+        <span>درجة الخطورة</span>
+        <select name="hazardLevel" [(ngModel)]="formModel.hazardLevel">
+          <option value="">اختر درجة الخطورة</option>
+          <option *ngFor="let level of activeHazardLevels" [value]="level">
+            {{ level }}
+          </option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h3>المرفقات</h3>
+
+    <div class="attachments-grid">
+      <label>
+        <span>خطاب الطلب</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          (change)="onFileSelected($event, 'requestLetterFile')"
+        />
+        <b>{{ formModel.requestLetterFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+
+      <label>
+        <span>صورة الرقم القومي</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          (change)="onFileSelected($event, 'nationalIdFile')"
+        />
+        <b>{{ formModel.nationalIdFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+
+      <label>
+        <span>عقد الملكية / الإيجار</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          (change)="onFileSelected($event, 'ownershipContractFile')"
+        />
+        <b>{{ formModel.ownershipContractFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+
+      <label>
+        <span>الرسم الهندسي</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          (change)="onFileSelected($event, 'engineeringDrawingFile')"
+        />
+        <b>{{ formModel.engineeringDrawingFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+
+      <label>
+        <span>كروكي الموقع</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          (change)="onFileSelected($event, 'siteSketchFile')"
+        />
+        <b>{{ formModel.siteSketchFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+
+      <label>
+        <span>السجل التجاري</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          (change)="onFileSelected($event, 'commercialRegisterFile')"
+        />
+        <b>{{ formModel.commercialRegisterFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+
+      <label>
+        <span>البطاقة الضريبية</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          (change)="onFileSelected($event, 'taxCardFile')"
+        />
+        <b>{{ formModel.taxCardFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+
+      <label>
+        <span>صور</span>
+        <input
+          type="file"
+          accept="application/pdf,image/*"
+          (change)="onFileSelected($event, 'photosFile')"
+        />
+        <b>{{ formModel.photosFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+
+      <label>
+        <span>مرفق آخر</span>
+        <input
+          type="file"
+          (change)="onFileSelected($event, 'otherFile')"
+        />
+        <b>{{ formModel.otherFile || 'لم يتم اختيار ملف' }}</b>
+      </label>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h3>ملاحظات</h3>
+
+    <label class="wide">
+      <textarea
+        name="notes"
+        rows="3"
+        [(ngModel)]="formModel.notes"
+        placeholder="اكتبي أي ملاحظات..."
+      ></textarea>
+    </label>
+  </section>
+
+  <div class="form-actions">
+    <button class="primary" type="submit" [disabled]="saving">
+      <span *ngIf="!saving">{{ requestToEdit ? 'حفظ التعديل' : 'حفظ' }}</span>
+      <span *ngIf="saving">جاري الحفظ...</span>
+    </button>
+
+    <button class="ghost" type="button" (click)="cancelEdit()" [disabled]="saving">
+      {{ requestToEdit ? 'إلغاء التعديل' : 'تفريغ النموذج' }}
+    </button>
+
+    <button
+      class="ghost"
+      type="button"
+      (click)="loadActivityTypes()"
+      [disabled]="activityTypesLoading"
+    >
+      تحديث أنواع النشاط
+    </button>
+
+    <button
+      class="ghost"
+      type="button"
+      (click)="loadDistricts()"
+      [disabled]="districtsLoading"
+    >
+      تحديث المراكز
+    </button>
+  </div>
+</form>

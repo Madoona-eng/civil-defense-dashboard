@@ -1,0 +1,85 @@
+<div class="login-page" dir="rtl">
+  <div class="login-shell">
+    <section class="welcome-panel">
+      <span class="badge">الحماية المدنية</span>
+      <h1>نظام طلبات ومعاينات الحماية المدنية</h1>
+      <p>
+        سجلي دخولك لإدارة طلبات المنشآت، المرفقات، المعاينات، تقارير المطابقة، الموافقات النهائية والأرشيف.
+      </p>
+
+      <div class="feature-list">
+        <div>
+          <strong>طلبات</strong>
+          <span>تسجيل ومتابعة</span>
+        </div>
+        <div>
+          <strong>معاينات</strong>
+          <span>تقرير وملاحظات</span>
+        </div>
+        <div>
+          <strong>أرشيف</strong>
+          <span>حفظ ورجوع سريع</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-card">
+      <div class="card-header">
+        <span>تسجيل الدخول</span>
+        <h2>أهلاً بيكي</h2>
+        <p>ادخلي بيانات المستخدم للانتقال للسيستم.</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="login()">
+        <div class="field">
+          <label>اسم المستخدم</label>
+          <input
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            placeholder="مثال: admin"
+          />
+          <small *ngIf="form.controls.username.invalid && form.controls.username.touched">
+            اسم المستخدم مطلوب
+          </small>
+        </div>
+
+        <div class="field">
+          <label>كلمة المرور</label>
+          <div class="password-wrap">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="ادخلي كلمة المرور"
+            />
+            <button type="button" (click)="showPassword = !showPassword">
+              {{ showPassword ? 'إخفاء' : 'إظهار' }}
+            </button>
+          </div>
+          <small *ngIf="form.controls.password.invalid && form.controls.password.touched">
+            كلمة المرور مطلوبة
+          </small>
+        </div>
+
+        <div class="error" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+
+        <button class="login-btn" type="submit" [disabled]="isLoading">
+          {{ isLoading ? 'جاري الدخول...' : 'دخول السيستم' }}
+        </button>
+      </form>
+
+      <div class="demo-box">
+        <span>بيانات تجربة سريعة:</span>
+        <div class="demo-actions">
+          <button type="button" (click)="fillDemoUser('admin')">Admin</button>
+          <button type="button" (click)="fillDemoUser('civil')">User</button>
+        </div>
+        <p>Admin: admin / admin123</p>
+        <p>User: civil / civil123</p>
+      </div>
+    </section>
+  </div>
+</div>

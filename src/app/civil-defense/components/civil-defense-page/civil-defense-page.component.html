@@ -1,0 +1,17 @@
+<div class="civil-dashboard-shell" dir="rtl">
+  <app-civil-defense-dashboard-sidebar
+    [selectedStatus]="selectedStatus"
+    [userName]="getUserName()"
+    [userRole]="getUserRole()"
+    [totalRequests]="getCount('ALL')"
+    [newRequests]="getCount('NEW')"
+    [inspectionRequests]="getCount('INSPECTION_SCHEDULED')"
+    [finalApprovalRequests]="getCount('COMPLIANT')"
+    (statusSelected)="selectStatus($event)"
+    (createRequest)="openCreateRequest()"
+    (openInspection)="openInspectionQueue()"
+    (openApprovals)="openFinalApprovals()"
+    (openArchive)="openArchive()"
+    (logoutRequested)="logout()"
+  ></app-civil-defense-dashboard-sidebar>
+</div>

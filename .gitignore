@@ -1,0 +1,7 @@
+﻿node_modules/
+.angular/
+dist/
+.vscode/
+.env
+.DS_Store
+proxy.conf.json
